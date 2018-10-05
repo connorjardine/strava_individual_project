@@ -1,0 +1,23 @@
+<html>
+
+	<title> Strava App </title>
+
+	<header> 
+		<h1>Strava App</h1>
+	</header>
+
+	<body>
+		<h1> Authenticate </h1>
+
+		<div>
+			{% for user in users %}
+			{{user}}
+			{% endfor %}
+		</div>
+		<div>
+			<a href ={{auth}}>Authenticate with strava</a>
+			<p>{{access_token}}</p>
+		</div>
+	</body>
+
+</html>	
