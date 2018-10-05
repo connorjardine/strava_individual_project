@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 
 from frontend.application.db import return_users
-from frontend.application.stravauth import strava_auth, get_headers
+from frontend.application.stravauth import *
 
 
 def create_app():
@@ -17,6 +17,11 @@ def create_app():
     @app.route('/authenticate', methods=['POST', 'GET'])
     def authenticate():
 
-        return render_template('authenticate.html', access_token=get_headers(), users=return_users(), auth=strava_auth())
+        return render_template('authenticate.html',
+                               athlete=get_athlete(get_access_token(get_headers)),
+                               access_token=get_access_token(get_headers()),
+                               get_code=get_headers(),
+                               users=return_users(),
+                               auth=strava_auth())
 
     return app
