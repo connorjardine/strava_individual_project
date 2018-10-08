@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  {% block title %}Athlete{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class = "main-wrapper">
+		<div class = "main-box">
+			{% for user in get_users %}
+				<div class ="main-item">
+					{% for item in user %}
+						<p>{{item}}</p>
+					{% endfor %}
+				</div>
+			{% endfor %}
+            <div class ="main-item">
+					{% for item in get_athlete %}
+						<p>{{item}}</p>
+					{% endfor %}
+				</div>
+		</div>
+	</div>
+{% endblock %}

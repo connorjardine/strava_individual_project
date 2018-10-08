@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  {% block title %}DEBUG{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class = "main-wrapper">
+		<div class = "main-box">
+			{% for user in get_users %}
+				<div class ="main-item">
+					{% for item in user %}
+						<p>{{item}}</p>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endblock %}

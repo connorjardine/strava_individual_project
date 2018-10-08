@@ -1,25 +1,20 @@
-<html>
+{% extends 'base.html' %}
 
-	<title> Strava App </title>
+{% block header %}
+  {% block title %}Authenticate{% endblock %}
+{% endblock %}
 
-	<header> 
-		<h1>Strava App</h1>
-	</header>
-
-	<body>
-		<h1> Authenticate </h1>
-
-		<div>
-			{% for user in users %}
-			{{user}}
-			{% endfor %}
+{% block content %}
+	<div class = "auth-wrapper">
+		<div class = "auth-box">
+			<div class = "auth-title">
+				<h1>Authenticate with Strava</h1>
+			</div>
+			<div class = "auth-link">
+				<a href ={{auth}}>Authenticate with strava</a>
+			</div>
+			<div class = "auth-outcome">{{headers}}</div>
 		</div>
-		<div>
-			<a href ={{auth}}>Authenticate with strava</a>
-			<p>{{get_code}}</p>
-			<p>{{access_token}}</p>
-			<p>{{athlete}}</p>
-		</div>
-	</body>
+	</div>
+{% endblock %}
 
-</html>	
