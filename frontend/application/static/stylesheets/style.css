@@ -8,14 +8,17 @@
 
 .main-wrapper {
      text-align: center;
- }
-
- .main-box {
-    display: inline-block;
-     margin: 20px;
+     margin-left: 60px;
+     margin-right: 60px;
+     margin-top: 20px;
+     margin-bottom: 20px;
      border: 1px solid black;
      background-color: #fc4c02;
      padding:20px;
+ }
+
+ .main-box {
+
  }
 
  .main-item {
@@ -26,14 +29,17 @@
 
 .base-nav-wrapper {
     text-align:center;
+    margin-left: 60px;
+     margin-right: 60px;
+     margin-top: 20px;
+     margin-bottom: 20px;
+    border: 1px solid black;
+    background-color: #fc4c02;
+    padding:20px;
 }
 
 .base-nav-box {
-    display: inline-block;
-    margin: 20px;
-    border: 1px solid black;
-    background-color: #fc4c02;
-    padding:20px; 
+
 }
 
 .base-nav-button {
