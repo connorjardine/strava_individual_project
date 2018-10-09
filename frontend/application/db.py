@@ -3,6 +3,13 @@ import sqlite3
 from frontend.application.user import User
 
 
+# conn = sqlite3.connect('users.db')
+# c = conn.cursor()
+# c.execute("ALTER TABLE users ADD password text")
+# conn.commit()
+
+# conn.close()
+
 def create_table():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
@@ -30,7 +37,7 @@ def get_user_by_athlete_id():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
 
-    out = c.execute("SELECT * FROM users WHERE athlete_id=35492189")
+    out = c.execute("SELECT * FROM users WHERE athlete_id=34913826")
 
     conn.commit()
 

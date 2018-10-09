@@ -22,17 +22,21 @@ def create_app():
     def debug():
         return render_template('debug.html', get_users=get_users())
 
-    # Authentication page for connecting to Strava
-    @app.route('/authenticate')
-    def authenticate():
+    @app.route('/login')
+    def login():
+        return render_template('login.html')
 
-        return render_template('authenticate.html',
+    # Authentication page for connecting to Strava
+    @app.route('/register')
+    def register():
+
+        return render_template('register.html',
                                auth=strava_auth(),
                                headers=get_headers())
 
     # Home page of the app
     @app.route('/athlete')
     def athlete():
-        return render_template('athlete.html', get_users=get_users(), get_athlete=athlete_info())
+        return render_template('athlete.html', get_users=get_users(), get_athlete=get_athlete_info())
 
     return app

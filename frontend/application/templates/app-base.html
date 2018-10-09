@@ -1,0 +1,22 @@
+<html>
+
+	<title>
+		{% block title %}{% endblock %}
+	</title>
+
+	<link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+
+	<body>
+        <div class = "base-nav-wrapper">
+            <div class = "base-nav-box">
+                <a href = "">vfvefv</a>
+                <a href = "">vfvefv</a>
+                <a href = "">vfvefv</a>
+                <a href = "">vfvefv</a>
+
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+	</body>
+
+</html>

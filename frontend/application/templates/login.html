@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  {% block title %}Login{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class = "auth-wrapper">
+		<div class = "auth-box">
+			<div class = "auth-title">
+				<h1>Login</h1>
+			</div>
+            <div class = "auth-outcome">
+                <p>Enter your Athlete ID and your Username:</p>
+            </div>
+            <div class = "login-forms">
+                <form>
+                    Athlete ID:<br>
+                    <input type="text" name="firstname"><br>
+                    Password:<br>
+                    <input type="text" name="lastname"><br>
+                    <input class = "auth-link" type="button" value="Submit" onclick="window.location.href='{{ url_for('athlete') }}'"/>
+                </form>
+            </div>
+            <div class = "auth-breadcrumb-wrapper">
+				<div class = "auth-breadcrumb">
+					<a class = "auth-breadcrumb-link" href="{{ url_for('register') }}">Not Registered?</a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+{% endblock %}

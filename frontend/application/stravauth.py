@@ -9,7 +9,7 @@ CLIENT_SECRET = "494606966cbd300f4e0dc96a2062bfa49ec21fe0"
 
 def strava_auth():
     client = Client()
-    url = client.authorization_url(client_id=29157, redirect_uri='http://127.0.0.1:5000/authenticate')
+    url = client.authorization_url(client_id=29157, redirect_uri='http://127.0.0.1:5000/athlete')
 
     return url
 

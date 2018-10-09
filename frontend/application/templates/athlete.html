@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'app-base.html' %}
 
 {% block header %}
   {% block title %}Athlete{% endblock %}
@@ -14,11 +14,9 @@
 					{% endfor %}
 				</div>
 			{% endfor %}
-            <div class ="main-item">
-					{% for item in get_athlete %}
-						<p>{{item}}</p>
-					{% endfor %}
-				</div>
+			<div class ="main-item">
+				{{get_athlete}}
+			</div>
 		</div>
 	</div>
 {% endblock %}

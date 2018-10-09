@@ -5,7 +5,8 @@
      color: #282c33;
  }
 
- .main-wrapper {
+
+.main-wrapper {
      text-align: center;
  }
 
@@ -24,10 +25,15 @@
  }
 
 .base-nav-wrapper {
+    text-align:center;
 }
 
-.base-nav {
-    text-align: center;
+.base-nav-box {
+    display: inline-block;
+    margin: 20px;
+    border: 1px solid black;
+    background-color: #fc4c02;
+    padding:20px; 
 }
 
 .base-nav-button {
@@ -57,9 +63,41 @@
 .auth-link {
     margin-top: 10px;
     margin-bottom: 10px;
+    background-color: #282c33;
+    color: white;
+    border-style: none;
+    padding: 10px;
 }
 
-.auth-outcome {
+.auth-link:focus {
+    border-style: none;
+    outline: none;
+}
+
+.auth-outcome {  ]
+    display: inline-block;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+.auth-breadcrumb-wrapper {
+    text-align: right;
+}
+
+.auth-breadcrumb {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.auth-breadcrumb-link {
+    color: #282c33;
+    text-decoration: none;
+    font-size: 10px;
+}
+
+.auth-breadcrumb-link:focus {
+    color: #282c33;
+    text-decoration: none;
+    font-size: 10px;
 }
