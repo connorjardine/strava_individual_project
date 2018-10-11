@@ -33,13 +33,24 @@ def get_users():
     return None
 
 
-def get_user_by_athlete_id():
+def get_user_by_athlete_id(athlete_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
 
-    out = c.execute("SELECT * FROM users WHERE athlete_id=34913826")
+    out = c.execute("SELECT DISTINCT * FROM users WHERE athlete_id=?", (athlete_id,))
 
     conn.commit()
+
+    if out is not None:
+        return out
+    return None
+
+
+def get_password(athlete_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+
+    out = c.execute("SELECT DISTINCT password FROM users WHERE athlete_id=?", (athlete_id,))
 
     if out is not None:
         return out
@@ -50,7 +61,7 @@ def get_user_by_name(first, last):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
 
-    out = c.execute("SELECT * FROM users WHERE first_name=? AND last_name=?", first, last)
+    out = c.execute("SELECT * FROM users WHERE first_name=? AND last_name=?", (first, last,))
 
     conn.commit()
 
@@ -59,8 +70,8 @@ def get_user_by_name(first, last):
     return None
 
 
-def insert_user(access_token, athlete_id, first, last):
-    temp = User(access_token, athlete_id, first, last)
+def insert_user(access_token, athlete_id, first, last, password):
+    temp = User(access_token, athlete_id, first, last, password)
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
 
@@ -69,7 +80,8 @@ def insert_user(access_token, athlete_id, first, last):
                   {'access_token': temp.access_token,
                    'athlete_id': temp.athlete_id,
                    'first': temp.first,
-                   'last': temp.last})
+                   'last': temp.last,
+                   'password': temp.password})
 
         conn.commit()
         return "verified"
@@ -82,4 +94,5 @@ def already_exists(access_token, athlete_id):
         if user[1] == athlete_id or user[0] == access_token:
             return True
     return False
+
 

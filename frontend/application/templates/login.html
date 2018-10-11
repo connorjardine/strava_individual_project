@@ -14,12 +14,21 @@
                 <p>Enter your Athlete ID and your Username:</p>
             </div>
             <div class = "login-forms">
-                <form>
-                    Athlete ID:<br>
-                    <input type="text" name="firstname"><br>
-                    Password:<br>
-                    <input type="text" name="lastname"><br>
-                    <input class = "auth-link" type="button" value="Submit" onclick="window.location.href='{{ url_for('athlete') }}'"/>
+                <form method="POST" action="{{ url_for('login') }}">
+                    {{form.csrf_token}}
+                    <div class = "auth-form">
+                        Athlete ID:
+                    </div>
+                    <div class = "auth-form">
+                        {{form.athlete_id}}
+                    </div>
+                    <div class = "auth-form">
+                        Password (Min 8 characters):
+                    </div>
+                    <div class = "auth-form">
+                        {{form.password}}
+                    </div>
+                    <input class = "auth-link" type="submit" value="Submit"/>
                 </form>
             </div>
             <div class = "auth-breadcrumb-wrapper">

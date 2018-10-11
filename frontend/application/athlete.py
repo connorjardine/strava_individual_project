@@ -2,8 +2,8 @@ from stravalib import Client
 from frontend.application.db import *
 
 
-def get_athlete_info():
-    user = get_user_by_athlete_id()
+def get_athlete_info(athlete_id):
+    user = get_user_by_athlete_id(athlete_id)
 
     single_user = first_item(user)
 
@@ -30,3 +30,5 @@ def first_item(user):
     for i in user:
         return i
     return None
+
+
