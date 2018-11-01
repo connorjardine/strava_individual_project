@@ -1,0 +1,17 @@
+{% extends 'app-base.html' %}
+
+{% block header %}
+  {% block title %}Profile{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class = "main-wrapper">
+		<div class = "main-box">
+			<div class ="main-item">
+				{{get_athlete.id}}
+                {{get_athlete.firstname}}
+                {{get_athlete.lastname}}
+			</div>
+		</div>
+	</div>
+{% endblock %}

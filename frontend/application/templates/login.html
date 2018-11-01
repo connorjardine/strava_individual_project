@@ -15,18 +15,21 @@
             </div>
             <div class = "login-forms">
                 <form method="POST" action="{{ url_for('login') }}">
-                    {{form.csrf_token}}
+                    {{ form.csrf_token }}
                     <div class = "auth-form">
-                        Athlete ID:
+                        Username:
                     </div>
                     <div class = "auth-form">
-                        {{form.athlete_id}}
+                        {{ form.username }}
                     </div>
                     <div class = "auth-form">
                         Password (Min 8 characters):
                     </div>
                     <div class = "auth-form">
-                        {{form.password}}
+                        {{ form.password }}
+                    </div>
+                    <div class = "auth-form">
+                        Remember Me?:
                     </div>
                     <input class = "auth-link" type="submit" value="Submit"/>
                 </form>

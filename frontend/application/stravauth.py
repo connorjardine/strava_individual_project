@@ -22,12 +22,8 @@ def get_headers():
         access_token = client.exchange_code_for_token(client_id=29157,
                                                       client_secret="494606966cbd300f4e0dc96a2062bfa49ec21fe0",
                                                       code=code)
-        client = Client(access_token)
+        return access_token
 
-        client.get_athlete()
-
-        return insert_user(access_token,
-                           client.get_athlete().id,
-                           client.get_athlete().firstname,
-                           client.get_athlete().lastname)
     return "Click on the URL to authorise with Strava."
+
+

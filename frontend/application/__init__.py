@@ -1,12 +1,12 @@
-from flask import Flask, render_template, redirect, url_for
-from flask_wtf import FlaskForm, widgets
-from wtforms import PasswordField, IntegerField
+from flask import Flask, render_template, redirect
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Length
 
 from frontend.application.db import *
 from frontend.application.stravauth import *
 from frontend.application.athlete import *
-from frontend.application.password_hash import *
+from frontend.application.authorise import *
 
 
 def create_app():
@@ -15,13 +15,21 @@ def create_app():
     app.config['SECRET_KEY'] = "Connor"
 
     class LoginForm(FlaskForm):
-        athlete_id = IntegerField('athlete_id',
-                                  validators=[InputRequired("An Athlete ID is required.")])
+        username = StringField('username', validators=[InputRequired("A username is required."), Length(min=4, max=15)])
 
         password = PasswordField('password',
                                  default="Password",
                                  validators=[InputRequired("Password is required."),
-                                             Length(min=8, message="Password must be 8 characters or greater.")])
+                                             Length(min=8, max=80,
+                                                    message="Password must be 8 characters or greater.")])
+
+    class RegisterForm(FlaskForm):
+        username = StringField('username', validators=[InputRequired("A username is required."), Length(min=4, max=15)])
+
+        password = PasswordField('password',
+                                 default="Password",
+                                 validators=[InputRequired("Password is required."),
+                                             Length(min=8, max=80, message="Password must be 8 characters or greater.")])
 
     # Create tables, currently just users but will add more if necessary in the future.
     create_table()
@@ -41,25 +49,27 @@ def create_app():
         form = LoginForm()
 
         if form.validate_on_submit():
-            if get_user_by_athlete_id(form.athlete_id.data):
-                hashed_password = hash_md5(form.password.data)
-                if get_password(hashed_password):
-                    return redirect(url_for('athlete'))
-            else:
-                return "Invalid Username or Password"
+            return str(authorise_login(form.username.data, form.password.data))
 
-            render_template('athlete.html', get_users=get_users(), get_athlete=get_athlete_info(34913826))
         return render_template('login.html', form=form)
 
     # Authentication page for connecting to Strava
-    @app.route('/register')
+    @app.route('/register', methods=['GET', 'POST'])
     def register():
+        form = RegisterForm()
 
+        if form.validate_on_submit():
+            return redirect(strava_auth())
         return render_template('register.html',
-                               auth=strava_auth(),
+                               form=form,
                                headers=get_headers())
 
-    # Home page of the app
+        # Home page of the app
+
+    @app.route('/profile')
+    def profile():
+        return render_template('profile.html', get_athlete=get_athlete_info(34913826))
+
     @app.route('/athlete')
     def athlete():
         return render_template('athlete.html', get_users=get_users(), get_athlete=get_athlete_info(34913826))

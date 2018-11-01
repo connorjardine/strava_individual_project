@@ -56,13 +56,14 @@
 
 .auth-form {
     margin-top: 10px;
-    margin-bottom: 10px;  
+    margin-bottom: 10px;
 }
 
 .auth-box {
      display: inline-block;
      margin: 20px;
-     border: 0.1px solid gray;
+     border: 0.5px solid gray;
+     border-radius: 5px;
      background-color: white;
      padding:20px;
 }
@@ -73,6 +74,7 @@
 .auth-link {
     margin-top: 10px;
     margin-bottom: 10px;
+    border-radius: 5px;
     background-color: #fc4c02;
     color: white;
     border-style: none;
@@ -84,8 +86,8 @@
     outline: none;
 }
 
-.auth-outcome {  ]
-    display: inline-block;
+.auth-outcome {
+    word-wrap: break-word;     
     margin-top: 10px;
     margin-bottom: 30px;
 }
@@ -106,8 +108,14 @@
     font-size: 10px;
 }
 
+.auth-breadcrumb-link:hover {
+    color: blue;
+    text-decoration: none;
+    font-size: 10px;
+}
+
 .auth-breadcrumb-link:focus {
-    color: #282c33;
+    color: #fc4c02;
     text-decoration: none;
     font-size: 10px;
 }

@@ -5,9 +5,7 @@ from frontend.application.db import *
 def get_athlete_info(athlete_id):
     user = get_user_by_athlete_id(athlete_id)
 
-    single_user = first_item(user)
-
-    client = Client(get_athlete_id(single_user))
+    client = Client(get_athlete_id(user))
 
     athlete = client.get_athlete()
 
@@ -30,5 +28,4 @@ def first_item(user):
     for i in user:
         return i
     return None
-
 

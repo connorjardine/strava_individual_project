@@ -10,10 +10,23 @@
 			<div class = "auth-title">
 				<h1>Register</h1>
 			</div>
-			<form>
-				<input class = "auth-link" type="button" value="Strava Authorisation" onclick="window.location.href='{{auth}}'" />
+			<div class = "auth-outcome">Please enter a password and then connect to your Strava Account.</div>
+			<form method="POST" action="{{ url_for('register') }}">
+				{{form.csrf_token}}
+				<div class = "auth-form">
+					Username:
+				</div>
+				<div class = "auth-form">
+					{{form.username}}
+				</div>
+				<div class = "auth-form">
+					Password (Min 8 characters):
+				</div>
+				<div class = "auth-form">
+					{{form.password}}
+				</div>
+				<input class = "auth-link" type="submit" value="Strava Authorisation" onclick="window.location.href='{{auth}}'" />
 			</form>
-			<div class = "auth-outcome">{{headers}}</div>
 			<div class = "auth-breadcrumb-wrapper">
 				<div class = "auth-breadcrumb">
 					<a class = "auth-breadcrumb-link" href="{{ url_for('login') }}">Already Registered?</a>
