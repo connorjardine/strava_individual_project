@@ -1,15 +1,14 @@
 from stravalib import *
-import arrow
-from datetime import datetime
 
 
 def get_activity(token):
     client = Client(token)
     types = ['time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-    all_activities = client.get_activities(limit=100)
+    all_activities = client.get_activities()
     for i in all_activities:
+        print(i.elapsed_time)
+        print(i.start_latlng)
         if i.id is not None:
-            print(i.id)
             streams = client.get_activity_streams(i.id, types=types, resolution='medium')
 
             if streams is not None:
@@ -22,8 +21,6 @@ def get_activity(token):
         else:
             print("upload id is none")
 
-
-print(get_activity("0a932112522523638c0e800f1aecda3c10515371"))
 
 
 

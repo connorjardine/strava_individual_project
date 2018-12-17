@@ -14,9 +14,3 @@ def authorise_login(username, password):
         return True
     return False
 
-
-
-print(authorise_login('cjardi', 'hello1234'))
-
-
-
