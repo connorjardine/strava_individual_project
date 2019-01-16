@@ -14,4 +14,3 @@ def thaw(obj):
     if obj is not None:
         return jsonpickle.decode(obj)
     return None
-

@@ -1,11 +1,35 @@
-<!DOCTYPE html>
-    <html>
-    <head>
-            {{mymap.js}}
-    </head>
-    <body>
-        <h1>Route Recommender</h1>
+{% extends 'app-base.html' %}
 
-        {{mymap.html}}
-    </body>
-</html>
+{% block title %}Map{% endblock %}
+
+{% block content %}
+    <div class = "container" id="map" style="height: 500px;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+  // The first parameter are the coordinates of the center of the map
+  // The second parameter is the zoom level
+  var map = L.map('map').setView([55.8642, 4.2518], 11);
+  var map_data = {{ runs|tojson }};
+  console.log(map_data[0])
+
+  // {s}, {z}, {x} and {y} are placeholders for map tiles
+  // {x} and {y} are the x/y of where you are on the map
+  // {z} is the zoom level
+  // {s} is the subdomain of cartodb
+    var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+  });
+    // It even opens up a popup when you click it!
+
+    var x;
+    for(x=0;x<map_data.length;x++) {
+        var name = String(map_data[x][0]);
+        L.marker([map_data[x][1], map_data[x][2]]).addTo(map).bindPopup("<strong>"+name+"</strong><br>"+"<a href=#>Download</a>").openPopup();
+    }
+  // Now add the layer onto the map
+  map.addLayer(layer);
+</script>
+{% endblock %}
+

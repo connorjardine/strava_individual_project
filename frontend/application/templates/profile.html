@@ -1,34 +1,36 @@
 {% extends 'app-base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block header %}
-    {% block title %}Profile{% endblock %}
-{% endblock %}
+{% block title %}Profile{% endblock %}
 
-<head>{{mymap.js}}</head>
 {% block content %}
-	<div class = "main-wrapper">
-		<div class = "main-box">
-			<div class ="main-item">
-				{{username}}
-				{{code}}
+	<div class = "container">
+		<div class="row">
+			<div class="col-md-4">
+				<h1>{{username}}</h1>
+				<h2>{{profile[0]}}&nbsp;{{profile[1]}}</h2>
+				<img src ={{profile[2]}} alt="strava profile picture" class="img-thumbnail">
 			</div>
-			<form method="POST" action="{{ url_for('profile') }}">
-				{{form.csrf_token}}
-				<div>
-					Distance in metres:
-				</div>
-				<div>
-					{{form.distance}}
-				</div>
-				<div>
-					Time in Minutes:
-				</div>
-				<div>
-					{{form.time}}
-				</div>
-				<input type="submit" value="Submit Route Requests" />
-			</form>
+			<div class="col-md-4">
+				<h2>{{profile[3]}},&nbsp;{{profile[4]}}</h2>
+				<h2>Last active: {{profile[5]}}</h2>
+				<h2>Friends: {{profile[6]}}</h2>
+			</div>
+			<div class="col-md-4">
+				<h3>Main activity: {{profile[7]}}</h3>
+				<h3>Unit Preference: {{profile[8]}}</h3>
+			</div>
 		</div>
-
+	</div>
+	<div class = "container">
+		<form method="POST" action="{{ url_for('profile') }}">
+			{{form.csrf_token}}
+			{{wtf.form_field(form.latitude)}}
+			{{wtf.form_field(form.longitude)}}
+			{{wtf.form_field(form.distance)}}
+			{{wtf.form_field(form.time)}}
+			{{wtf.form_field(form.elevation)}}
+			<input class = "btn btn-primary" type="submit" value="Submit Route Requests" />
+		</form>
 	</div>
 {% endblock %}

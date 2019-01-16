@@ -1,8 +1,8 @@
 import pymongo
+import time
 
-from frontend.application.athlete import *
 from frontend.application.gpx_comparison import *
-from frontend.application.pickle import *
+from frontend.application.services import *
 
 DB_NAME = "c_strava"
 DB_HOST = "ds127094.mlab.com"
@@ -19,50 +19,69 @@ def parse_runs(code, after):
     current_runs = []
 
     current_user = db.users.find({'code': code})[0]
-    print(current_user['_id'])
 
     for i in db.runs.find():
         current_runs += [[i['_id'], thaw(i['trace']).name]]
 
-    new_runs = get_activity(code, after)
-    print(len(new_runs))
 
+    # This takes 7.8 seconds
+    activities = get_activity(code, after)
+    new_runs = activities[0]
+    print(len(new_runs))
+    pace = "{0:.2f}".format(sum(activities[1]) / len(activities[1]))
+    list_pace = activities[1]
+
+    db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(pace)}})
+
+    start_time = time.time()
     for i in new_runs:
-        print(i[1])
+        print(i)
         if not current_runs:
             print("do none")
-            db.runs.insert_one({"trace": freeze(i[1])})
+            db.runs.insert_one({"trace": freeze(i)})
             current_runs = []
+
             for j in db.runs.find():
                 current_runs += [[j['_id'], thaw(j['trace']).name]]
-            print(i[0])
-            print(current_runs[-1][0])
-            db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze([[i[0], current_runs[-1][0]]])}})
+            db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze([[current_runs[-1][0], [i[3]]]])}})
         else:
-            print("check with current_runs")
+            print("Current runs: " + str(len(current_runs)))
             flag = False
             for k in current_runs:
-                match = track_match(k[1], i[1])
-                print("Current runs: " + str(len(current_runs)))
-                print(match)
-                if match > 80:
+
+                match = align_tracks(k[1][5][0::8], i[5][0::8], -15)
+
+                if match > 90:
                     print("there was a match")
                     current_user = db.users.find({'code': code})[0]
-                    update_run = thaw(current_user['runs']).name + [[i[0], k[0]]]
+                    if current_user['runs'] == "":
+                        update_run = [[current_runs[-1][0], [i[3]]]]
+                    else:
+                        update_run = thaw(current_user['runs']).name
+                        copy_update_run = update_run
+                        for n in copy_update_run:
+                            if str(n[0]) == str(k[0]):
+                                temp = n
+                                update_run.remove(n)
+                                temp[1] += [i[3]]
+                                update_run += [temp]
                     db.users.update_one({"_id": current_user['_id']},
                                         {"$set": {"runs": freeze(update_run)}})
                     flag = True
                     break
             if not flag:
                 print("No match with current runs")
-                db.runs.insert_one({"trace": freeze(i[1])})
+                current_user = db.users.find({'code': code})[0]
+                db.runs.insert_one({"trace": freeze(i)})
                 current_runs = []
                 for j in db.runs.find():
                     current_runs += [[j['_id'], thaw(j['trace']).name]]
-                current_user = db.users.find({'code': code})[0]
-                update_run = thaw(current_user['runs']).name + [[i[0], current_runs[-1][0]]]
+                if current_user['runs'] == "":
+                    update_run = [[current_runs[-1][0], [i[3]]]]
+                else:
+                    update_run = thaw(current_user['runs']).name + [[current_runs[-1][0], [i[3]]]]
                 db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze(update_run)}})
 
 
-parse_runs("0a932112522523638c0e800f1aecda3c10515371", "2016-11-16T00:00:00Z")
+print(parse_runs("0a932112522523638c0e800f1aecda3c10515371", "2016-11-16T00:00:00Z"))
 

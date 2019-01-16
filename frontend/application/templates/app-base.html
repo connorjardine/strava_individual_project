@@ -1,22 +1,30 @@
-<html>
+{% extends "bootstrap/base.html" %}
 
-	<title>
-		{% block title %}{% endblock %}
-	</title>
+<title>{% block title %}{% endblock %}</title>
 
-	<link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+{% endblock %}
 
-	<body>
-        <div class = "base-nav-wrapper">
-            <div class = "base-nav-box">
-                <a href = "">vfvefv</a>
-                <a href = "">vfvefv</a>
-                <a href = "">vfvefv</a>
-                <a href = "">vfvefv</a>
-
-            </div>
+{% block navbar %}
+<nav class="navbar navbar-default navbar-light">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="{{ url_for('profile') }}">Profile</a>
         </div>
-        {% block content %}{% endblock %}
-	</body>
+        <ul class="nav navbar-nav">
+            <li><a class="navbar-brand" href="{{ url_for('mapview') }}">Map</a></li>
+            <li><a class="navbar-brand" href="{{ url_for('routeview') }}">Route View</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a class="navbar-brand" href="{{ url_for('logout') }}">Logout</a>
+        </ul>
+    </div>
+</nav>
+{% endblock %}
 
-</html>
+{% block header %}{% endblock %}
+{% block content %}{% endblock %}
+

@@ -1,25 +1,18 @@
 from flask import Flask, render_template, session, redirect, url_for
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, IntegerField, FloatField
 from wtforms.validators import InputRequired, Length
 from flask_pymongo import PyMongo
 from flask_googlemaps import GoogleMaps
-from flask_googlemaps import Map
+from flask_bootstrap import Bootstrap
 from stravalib import Client
 
-from frontend.application.convert_gpx import *
-from frontend.application.db import *
-from frontend.application.stravauth import *
-from frontend.application.athlete import *
-from frontend.application.authorise import *
 from frontend.application.gpx_comparison import *
-from frontend.application.pickle import *
-from frontend.application.map import *
+from frontend.application.services import *
 
 import sys
 import requests
 import json
-
 
 
 def create_app():
@@ -35,6 +28,8 @@ def create_app():
 
     app.config['GOOGLEMAPS_KEY'] = "AIzaSyCg3YkqcvCWvX0hYpWS_XEjT21a1HOmI0c"
     GoogleMaps(app)
+
+    Bootstrap(app)
 
     class LoginForm(FlaskForm):
         username = StringField('username', validators=[InputRequired("A username is required."), Length(min=4, max=15)])
@@ -56,11 +51,11 @@ def create_app():
     class RouteForm(FlaskForm):
         distance = StringField('distance')
         time = StringField('time')
+        elevation = IntegerField('elevation')
+        latitude = FloatField('latitude')
+        longitude = FloatField('longitude')
 
 
-
-    # Create tables, currently just users but will add more if necessary in the future.
-    create_table()
 
     # Authentication page for connecting to Strava
     @app.route('/', methods=['GET', 'POST'])
@@ -80,6 +75,7 @@ def create_app():
             if existing_user is not None:
                 session['username'] = username
                 session['code'] = existing_user['code']
+                session['profile'] = get_profile_info(existing_user['code'])
                 return redirect(url_for('profile'))
 
         return render_template('login.html', form=form)
@@ -93,16 +89,20 @@ def create_app():
         form = RegisterForm()
 
         if form.validate_on_submit():
-            code = session['code']
             username = form.username.data
             password = hash_md5(form.password.data)
 
-            session['username'] = username
-            session.permanent = True
+            users = mongo.db.users
+            existing_user = users.find_one({'username': username, 'password': password})
 
-            user = mongo.db.users
-            user.insert({'code': code, 'username': username, 'password': password})
-            return redirect(url_for('profile'))
+            if existing_user is not None:
+                code = session['code']
+                session['profile'] = get_profile_info(code)
+                session['username'] = username
+                session.permanent = True
+
+                users.insert({'code': code, 'username': username, 'password': password})
+                return redirect(url_for('profile'))
 
         return render_template('register.html', form=form)
 
@@ -114,74 +114,50 @@ def create_app():
             session.pop('code')
         if 'location' not in session:
             session.pop('location')
+        if 'elevation' not in session:
+            session.pop('elevation')
         return redirect(url_for('preauth'))
 
     @app.route('/profile', methods=['GET', 'POST'])
     def profile():
         username = session['username']
         code = session['code']
+        profile = session['profile']
         form = RouteForm()
 
-        send_url = "http://api.ipstack.com/check?access_key=6566a9efb41388f6d76eb0818815865f"
-        geo_req = requests.get(send_url)
-        geo_json = json.loads(geo_req.text)
-        latitude = geo_json['latitude']
-        longitude = geo_json['longitude']
-
-        session['location'] = [latitude, longitude]
-
         if form.validate_on_submit():
+            session['location'] = [form.latitude.data, form.longitude.data]
             session['time'] = form.time.data
-            session['distance'] = form.distance.data
+            session['distance'] = int(form.distance.data)
+            session['elevation'] = form.elevation.data
             return redirect(url_for('routeview'))
 
-        return render_template('profile.html', username=username, code=code, form=form)
+        return render_template('profile.html', username=username, form=form, profile=profile)
+
+    @app.route('/comparison', methods=['GET', 'POST'])
+    def comparison():
+        return render_template('comparison.html')
 
     @app.route('/map')
     def mapview():
-        # creating a map in the view
-        trace = []
         runs = mongo.db.runs.find()
+        map_coords = []
+        j = 0
         for i in runs:
-            trace += [thaw(i['trace']).name[0]]
-
-        locations = convert_gpx(trace)
-        mymap = Map(
-            identifier="view-side",
-            lat=locations[0]['lat'],
-            lng=locations[0]['lon'],
-            markers=[(loc['lat'], loc['lon'])
-                     for loc in locations],
-            fit_markers_to_bounds=True,
-            style="height:500px;width:800px;margin:0;"
-        )
-        return render_template('map.html', mymap=mymap)
+            map_coords += [[thaw(i['trace']).name[0], thaw(i['trace']).name[5][0][0], thaw(i['trace']).name[5][0][1]]]
+            j += 1
+            if j == 10:
+                break
+        return render_template('map.html', runs=map_coords)
 
     @app.route('/routes')
     def routeview():
-        # creating a map in the view
-        trace = []
-        data = []
-        if session['time'] and session['distance']:
-            routes = return_valid_routes(session['location'], 4500)
-            for i in routes:
-                trace += i[2]
-                data += [[i[0], i[1]]]
+        route_trace = []
+        if session['time'] and session['distance'] and session['location'] and session['elevation']:
+            route_trace = return_valid_routes(session['location'], session['distance'],
+                                              session['time'], session['elevation'])
         else:
-            runs = mongo.db.runs.find()
-            for i in runs:
-                trace += [thaw(i['trace']).name[0]]
-
-        locations = convert_gpx(trace)
-        mymap = Map(
-            identifier="view-side",
-            lat=locations[0]['lat'],
-            lng=locations[0]['lon'],
-            markers=[(loc['lat'], loc['lon'])
-                     for loc in locations],
-            fit_markers_to_bounds=True,
-            style="height:500px;width:800px;margin:0;"
-        )
-        return render_template('routeview.html', mymap=mymap, data=data)
+            return redirect(url_for('map'))
+        return render_template('routeview.html', routes=route_trace)
 
     return app
