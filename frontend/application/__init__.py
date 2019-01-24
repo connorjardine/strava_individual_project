@@ -104,7 +104,7 @@ def create_app():
                 users.insert({'code': code, 'username': username, 'password': password})
                 return redirect(url_for('profile'))
 
-        return render_template('register.html', form=form)
+        return render_template('register.html', form=form, auth=strava_auth())
 
     @app.route('/logout')
     def logout():
@@ -116,7 +116,7 @@ def create_app():
             session.pop('location')
         if 'elevation' not in session:
             session.pop('elevation')
-        return redirect(url_for('preauth'))
+        return redirect(url_for('login'))
 
     @app.route('/profile', methods=['GET', 'POST'])
     def profile():
@@ -136,7 +136,13 @@ def create_app():
 
     @app.route('/comparison', methods=['GET', 'POST'])
     def comparison():
-        return render_template('comparison.html')
+        users = mongo.db.users.find()
+        data = []
+        for i in users:
+            avg_pace = "{0:.2f}".format(float(thaw(i['pace']).name[0]) / float(thaw(i['pace']).name[1]))
+            data += [[i['username'], avg_pace]]
+        print(data, file=sys.stderr)
+        return render_template('comparison.html', data=data)
 
     @app.route('/map')
     def mapview():

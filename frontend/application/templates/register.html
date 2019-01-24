@@ -1,38 +1,20 @@
 {% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block header %}
-  {% block title %}Register{% endblock %}
-{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block content %}
-	<div class = "auth-wrapper">
-		<div class = "auth-box">
-			<div class = "auth-title">
-				<h1>Register</h1>
-			</div>
-			<div class = "auth-outcome">Please enter a password and then connect to your Strava Account.</div>
-			<form method="POST" action="{{ url_for('register') }}">
-				{{form.csrf_token}}
-				<div class = "auth-form">
-					Username:
-				</div>
-				<div class = "auth-form">
-					{{form.username}}
-				</div>
-				<div class = "auth-form">
-					Password (Min 8 characters):
-				</div>
-				<div class = "auth-form">
-					{{form.password}}
-				</div>
-				<input class = "auth-link" type="submit" value="Strava Authorisation" />
-			</form>
-			<div class = "auth-breadcrumb-wrapper">
-				<div class = "auth-breadcrumb">
-					<a class = "auth-breadcrumb-link" href="{{ url_for('login') }}">Already Registered?</a>
-				</div>
-			</div>
-		</div>
+
+	<div class = "container">
+		<h1>Register</h1>
+		<p>Please enter a password and then connect to your Strava Account:</p>
+		<form method="POST" action="{{ auth }}">
+			{{form.csrf_token}}
+			{{wtf.form_field(form.username)}}
+			{{wtf.form_field(form.password)}}
+			<input class = "btn btn-primary" type="submit" value="Strava Authorisation" />
+		</form>
+		<a class = "auth-breadcrumb-link" href="{{ url_for('login') }}">Already Registered?</a>
 	</div>
 {% endblock %}
 

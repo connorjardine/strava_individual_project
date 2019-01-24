@@ -23,19 +23,23 @@ def parse_runs(code, after):
     for i in db.runs.find():
         current_runs += [[i['_id'], thaw(i['trace']).name]]
 
-
     # This takes 7.8 seconds
     activities = get_activity(code, after)
     new_runs = activities[0]
-    print(len(new_runs))
-    pace = "{0:.2f}".format(sum(activities[1]) / len(activities[1]))
-    list_pace = activities[1]
+
+    current_pace = None
+    print(current_pace)
+    total_pace = activities[1][0]
+    num_pace = activities[1][1]
+
+    if current_pace is None:
+        pace = ["{0:.2f}".format(total_pace), num_pace]
+    else:
+        pace = [(current_pace[0] + "{0:.2f}".format(total_pace)), (current_pace[1] + num_pace)]
 
     db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(pace)}})
 
-    start_time = time.time()
     for i in new_runs:
-        print(i)
         if not current_runs:
             print("do none")
             db.runs.insert_one({"trace": freeze(i)})
@@ -50,6 +54,7 @@ def parse_runs(code, after):
             for k in current_runs:
 
                 match = align_tracks(k[1][5][0::8], i[5][0::8], -15)
+                print(match)
 
                 if match > 90:
                     print("there was a match")
@@ -84,4 +89,3 @@ def parse_runs(code, after):
 
 
 print(parse_runs("0a932112522523638c0e800f1aecda3c10515371", "2016-11-16T00:00:00Z"))
-

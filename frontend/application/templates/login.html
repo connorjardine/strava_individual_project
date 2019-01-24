@@ -1,45 +1,19 @@
 {% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block header %}
   {% block title %}Login{% endblock %}
-{% endblock %}
 
 {% block content %}
-	<div class = "auth-wrapper">
-		<div class = "auth-box">
-			<div class = "auth-title">
-				<h1>Login</h1>
-			</div>
-            <div class = "auth-outcome">
-                <p>Enter your Athlete ID and your Username:</p>
-            </div>
-            <div class = "login-forms">
-                <form method="POST" action="{{ url_for('login') }}">
-                    {{ form.csrf_token }}
-                    <div class = "auth-form">
-                        Username:
-                    </div>
-                    <div class = "auth-form">
-                        {{ form.username }}
-                    </div>
-                    <div class = "auth-form">
-                        Password (Min 8 characters):
-                    </div>
-                    <div class = "auth-form">
-                        {{ form.password }}
-                    </div>
-                    <div class = "auth-form">
-                        Remember Me?:
-                    </div>
-                    <input class = "auth-link" type="submit" value="Submit"/>
-                </form>
-            </div>
-            <div class = "auth-breadcrumb-wrapper">
-				<div class = "auth-breadcrumb">
-					<a class = "auth-breadcrumb-link" href="{{ url_for('register') }}">Not Registered?</a>
-				</div>
-			</div>
+    <div class = "container">
+        <h1>Login</h1>
+        <p>Enter your Athlete ID and your Username:</p>
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.csrf_token }}
+            {{ wtf.form_field(form.username) }}
+            {{ wtf.form_field(form.password) }}
+            <input class = "btn btn-primary" type="submit" value="Submit"/>
+        </form>
+        <a href="{{ url_for('register') }}">Not Registered?</a>
+    </div>
 
-		</div>
-	</div>
 {% endblock %}

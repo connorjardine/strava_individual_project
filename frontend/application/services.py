@@ -46,6 +46,10 @@ def return_times(oid):
     return times
 
 
+def dist_between_start(current_loc, first_coord, distance):
+    return int(gpxpy.geo.distance(current_loc[0], current_loc[1], 0, first_coord[0], first_coord[1], 0)) < distance
+
+
 def return_valid_routes(current_loc, distance, time, elevation):
     list_valid_routes = []
 
@@ -54,8 +58,7 @@ def return_valid_routes(current_loc, distance, time, elevation):
         first_coord = route[5][0]
         route_elevation = int(route[4])
         times = return_times(i['_id'])
-        if int(gpxpy.geo.distance(current_loc[0], current_loc[1], 0, first_coord[0], first_coord[1], 0)) < distance \
-                and times and route_elevation < int(elevation):
+        if dist_between_start(current_loc, route[5][0], distance) and times and route_elevation < int(elevation):
                 if int(convert_seconds(times) / 60) < int(time):
                     list_valid_routes += [[route[0], str(i['_id']), times, route_elevation, first_coord]]
                     if len(list_valid_routes) == 20:
@@ -119,6 +122,8 @@ def get_activity(token, recent):
     client = Client(token)
     output = []
     pace =[]
+    total_pace = 0
+    total_num = 0
     types = ['time', 'latlng', 'altitude', 'heartrate', 'temp', ]
     all_activities = client.get_activities(after=recent, limit=10)
     for i in all_activities:
@@ -126,7 +131,8 @@ def get_activity(token, recent):
             streams = client.get_activity_streams(i.id, types=types, resolution='medium')
             if streams is not None:
                 if 'latlng' in streams.keys() and 'altitude' in streams.keys():
-                    pace += [float("{0:.2f}".format(float(i.distance) / convert_seconds(str(i.elapsed_time))))]
+                    total_pace += float("{0:.2f}".format(float(i.distance) / convert_seconds(str(i.elapsed_time))))
+                    total_num += 1
                     output += [[i.name, i.distance, i.type, str(i.elapsed_time),
                                 str(int(i.total_elevation_gain)), streams['latlng'].data]]
                 else:
@@ -135,6 +141,7 @@ def get_activity(token, recent):
                 print("stream is none")
         else:
             print("upload id is none")
+    pace = [total_pace, total_num]
     return [output, pace]
 
 
