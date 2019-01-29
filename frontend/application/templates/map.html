@@ -26,7 +26,9 @@
     var x;
     for(x=0;x<map_data.length;x++) {
         var name = String(map_data[x][0]);
-        L.marker([map_data[x][1], map_data[x][2]]).addTo(map).bindPopup("<strong>"+name+"</strong><br>"+"<a href=#>Download</a>").openPopup();
+        var num = "783516705";
+        var activ = "https://www.strava.com/activities/" + num;
+        L.marker([map_data[x][1], map_data[x][2]]).addTo(map).bindPopup("<strong>"+name+"</strong><br>"+"<a href='#' onclick=\"this.href = activ\">View Route</a>").openPopup();
     }
   // Now add the layer onto the map
   map.addLayer(layer);

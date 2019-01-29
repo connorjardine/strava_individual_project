@@ -79,8 +79,6 @@ def line_similarity(p1, p2, p3, p4):
 
 
 def align_tracks(track1, track2, gap_penalty):
-    print(len(track1))
-    print(len(track2))
 
     if line_similarity(track1[0], track1[1], track2[0], track2[1]) < gap_penalty*30:
         return 0
@@ -121,8 +119,6 @@ def align_tracks(track1, track2, gap_penalty):
     return (c_match*100)/c_num
 
 
-start_time = time.time()
-print(align_tracks(x[0::20], y[0::20], -15))
-print("--- %s seconds ---" % (time.time() - start_time))
+
 
 

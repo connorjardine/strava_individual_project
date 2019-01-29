@@ -26,8 +26,10 @@
     var x;
     for(x=0;x<routes.length;x++) {
         var name = String(routes[x][0]);
-        var data = "time: "+String(routes[x][2]) + "<br> elevation: " + String(routes[x][3])+"m";
-        L.marker([routes[x][4][0], routes[x][4][1]]).addTo(map).bindPopup("<strong>"+name+"</strong><br>"+"<p>"+data+"</p>").openPopup();
+        var activ = "https://www.strava.com/activities/" + routes[x][1];
+        var url = "<a href='#' onclick=\"this.href = activ\">View Route</a>";
+        var data = "time: "+String(routes[x][5]) + "<br> elevation: " + String(routes[x][4])+"m<br> distance: " + String(routes[x][3])+"m";
+        L.marker([routes[x][2][0], routes[x][2][1]]).addTo(map).bindPopup("<strong>"+name+"</strong><br>"+"<p>"+data+"</p><br>"+ url).openPopup();
     }
   // Now add the layer onto the map
   map.addLayer(layer);

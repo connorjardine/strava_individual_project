@@ -11,6 +11,7 @@ from frontend.application.gpx_comparison import *
 from frontend.application.services import *
 
 import sys
+import datetime
 import requests
 import json
 
@@ -54,6 +55,7 @@ def create_app():
         elevation = IntegerField('elevation')
         latitude = FloatField('latitude')
         longitude = FloatField('longitude')
+        range = IntegerField('range')
 
 
 
@@ -76,6 +78,7 @@ def create_app():
                 session['username'] = username
                 session['code'] = existing_user['code']
                 session['profile'] = get_profile_info(existing_user['code'])
+                print(existing_user["after"], file=sys.stderr)
                 return redirect(url_for('profile'))
 
         return render_template('login.html', form=form)
@@ -130,6 +133,7 @@ def create_app():
             session['time'] = form.time.data
             session['distance'] = int(form.distance.data)
             session['elevation'] = form.elevation.data
+            session['range'] = form.range.data
             return redirect(url_for('routeview'))
 
         return render_template('profile.html', username=username, form=form, profile=profile)
@@ -161,7 +165,7 @@ def create_app():
         route_trace = []
         if session['time'] and session['distance'] and session['location'] and session['elevation']:
             route_trace = return_valid_routes(session['location'], session['distance'],
-                                              session['time'], session['elevation'])
+                                              session['time'], session['elevation'], session['range'])
         else:
             return redirect(url_for('map'))
         return render_template('routeview.html', routes=route_trace)
