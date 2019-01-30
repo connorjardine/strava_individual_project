@@ -35,18 +35,6 @@ def convert_seconds(i):
     return seconds
 
 
-def return_times(oid):
-    times = []
-    for i in db.users.find():
-        if i['runs'] is not "":
-            for j in thaw(i['runs']).name:
-                if str(j[0]) == str(oid):
-                    times += j[1]
-    if times:
-        return min(times)
-    return times
-
-
 def dist_between_start(current_loc, first_coord, distance):
     return int(gpxpy.geo.distance(current_loc[0], current_loc[1], 0, first_coord[0], first_coord[1], 0)) < distance
 
@@ -91,39 +79,14 @@ def get_profile_info(token):
     return ath
 
 
-def convert_gpx(gpx_list):
-    list_dict = []
-    for i in gpx_list:
-        list_dict += [{'lat': i[0], 'lon': i[1]}]
-    return list_dict
-
-
-def athlete_id(token):
-    client = Client(token)
-
-    athlete = client.get_athlete()
-
-    return athlete.id
-
-
-def altitude_gain(alt):
-    alt_total = 0
-    previous = int(alt[0])
-    for i in range(len(alt)):
-        if int(alt[i]) >= previous:
-            alt_total += alt[i] - previous
-        previous = alt[i]
-    return alt_total
-
-
-def get_activity(token, recent):
+def get_activity(token, recent, limit):
     client = Client(token)
     output = []
     pace = []
     total_pace = 0
     total_num = 0
     types = ['time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-    all_activities = client.get_activities(after=recent, limit=400)
+    all_activities = client.get_activities(after=recent, limit=limit)
     for i in all_activities:
         if i.id is not None:
             if i.type == 'Run':

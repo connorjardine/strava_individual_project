@@ -26,11 +26,11 @@ def avg_time(time):
     return total / len(time)
 
 
-def parse_runs(code, after):
+def parse_runs(code, after, limit):
     current_user = db.users.find({'code': code})[0]
 
     # This takes 7.8 seconds
-    activities = get_activity(code, after)
+    activities = get_activity(code, after, limit)
     new_runs = activities[0]
 
     current_pace = None
@@ -111,5 +111,5 @@ def parse_runs(code, after):
 
 
 start_time = time.time()
-print(parse_runs("0a932112522523638c0e800f1aecda3c10515371", "2016-11-16T00:00:00Z"))
+print(parse_runs("0a932112522523638c0e800f1aecda3c10515371", "2016-11-16T00:00:00Z", 400))
 print("--- %s seconds ---" % (time.time() - start_time))
