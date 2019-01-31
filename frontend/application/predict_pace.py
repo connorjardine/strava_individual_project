@@ -25,12 +25,14 @@ def generate_data(code):
     h = sum(len(u['times']) for u in user_runs)
     mx = np.zeros((h, 3))
     it = 0
+    runs = list(db.runs.find())
     for i in user_runs:
-        run = list(db.runs.find({'_id': ObjectId(i['id'])}))
-        for j in i['times']:
-            pace = run[0]['distance'] / convert_seconds(j)
-            mx[it] = [run[0]['distance'], run[0]['elevation'], pace]
-            it += 1
+        for run in runs:
+            if run['_id'] == ObjectId(i['id']):
+                for j in i['times']:
+                    pace = (run['distance'] / 1000) / convert_hours(j)
+                    mx[it] = [run['distance'], run['elevation'], pace]
+                    it += 1
     return mx
 
 
@@ -49,9 +51,9 @@ def predict_pace(code, distance, elevation):
     y_predict = regression_model.predict(x_test)
     regression_model_mse = mean_squared_error(y_predict, y_test)
     #print(math.sqrt(regression_model_mse))
-    return str("{0:.2f}".format(regression_model.predict([[distance, elevation]])[0][0]))+"m/s"
+    return str("{0:.2f}".format(regression_model.predict([[distance, elevation]])[0][0]))+" km/h"
 
 
 start_time = time.time()
-print(predict_pace("0a932112522523638c0e800f1aecda3c10515371", 10000, 100))
+print(predict_pace("0a932112522523638c0e800f1aecda3c10515371", 100, 0))
 print("--- %s seconds ---" % (time.time() - start_time))

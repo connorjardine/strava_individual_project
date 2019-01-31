@@ -148,17 +148,6 @@ def create_app():
         print(data, file=sys.stderr)
         return render_template('comparison.html', data=data)
 
-    @app.route('/map')
-    def mapview():
-        runs = mongo.db.runs.find()
-        map_coords = []
-        j = 0
-        for i in runs:
-            map_coords += [[thaw(i['trace']).name[0], thaw(i['trace']).name[5][0][0], thaw(i['trace']).name[5][0][1]]]
-            j += 1
-            if j == 10:
-                break
-        return render_template('map.html', runs=map_coords)
 
     @app.route('/routes')
     def routeview():
