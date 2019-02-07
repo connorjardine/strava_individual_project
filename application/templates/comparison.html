@@ -1,0 +1,15 @@
+{% extends 'app-base.html' %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<div class = "container">
+    <div class = "row">
+        {% for d in data %}
+            <div class = "col-md-4">
+                {{ d[0] }} {{ d[1] }}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
