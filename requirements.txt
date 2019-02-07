@@ -1,4 +1,3 @@
-celery
 arrow==0.12.1
 atomicwrites==1.2.1
 attrs==18.2.0
