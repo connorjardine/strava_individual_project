@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, IntegerField, FloatField
 from wtforms.validators import InputRequired, Length
@@ -7,7 +7,7 @@ from flask_pymongo import PyMongo
 from flask_bootstrap import Bootstrap
 
 from .func.gpx_comparison import *
-from .func.pickle import *
+from .data_pickle import *
 from .func.services import *
 from .func.handle_runs import *
 
@@ -69,9 +69,12 @@ def create_app():
                 session['code'] = existing_user['code']
                 session['profile'] = get_profile_info(existing_user['code'])
 
-                result = parse_runs.delay(session['code'], 10, after=existing_user['after'])
-
-                db.users.update_one({"_id": existing_user['_id']}, {"$set": {"after": datetime.now()}})
+                if thaw(existing_user['after']).name:
+                    parse_runs.delay(session['code'], 10, after=thaw(existing_user['after']).name)
+                else:
+                    parse_runs.delay(session['code'], 10, after=freeze(datetime.now()))
+                db.users.update_one({"_id": existing_user['_id']},
+                                    {"$set": {"after": freeze(datetime.now()), "tasks": "RUNNING"}})
                 return redirect(url_for('profile'))
 
         return render_template('login.html', form=form)
@@ -89,8 +92,7 @@ def create_app():
             password = hash_md5(form.password.data)
 
             users = mongo.db.users
-            existing_user = users.find_one({'username': username, 'password': password,
-                                            'runs': "", 'pace': "", 'after': ""})
+            existing_user = users.find_one({'username': username, 'password': password})
 
             if existing_user is not None:
                 code = session['code']
@@ -98,7 +100,8 @@ def create_app():
                 session['username'] = username
                 session.permanent = True
 
-                users.insert({'code': code, 'username': username, 'password': password, 'after': datetime.now()})
+                users.insert({'code': code, 'username': username, 'password': password,
+                              'after': datetime.now(), "tasks": "RUNNING"})
                 parse_runs.delay(code, 10, after=None)
                 return redirect(url_for('profile'))
 
@@ -138,8 +141,11 @@ def create_app():
         users = mongo.db.users.find()
         data = []
         for i in users:
-            avg_pace = "{0:.2f}".format(float(thaw(i['pace']).name[0]) / float(thaw(i['pace']).name[1]))
-            data += [[i['username'], avg_pace]]
+            if i['pace'] is not "":
+                print(i['pace'], file=sys.stderr)
+                avg_pace = thaw(i['pace'])['name']
+                print(avg_pace, file=sys.stderr)
+                data += [[i['username'], avg_pace]]
         print(data, file=sys.stderr)
         return render_template('comparison.html', data=data)
 
@@ -153,5 +159,25 @@ def create_app():
         else:
             return redirect(url_for('map'))
         return render_template('routeview.html', routes=route_trace)
+
+    @app.route('/prediction')
+    def pace_prediction():
+
+        data = ["data"]
+        return render_template('predict_pace.html', data=data)
+
+    @app.route('/_get_task_status')
+    def get_task_status():
+        users = mongo.db.users
+        existing_user = users.find_one({'code': session['code']})
+        return jsonify(result=existing_user['tasks'])
+
+    @app.route('/_update_task_status')
+    def update_task_status():
+        users = mongo.db.users
+        existing_user = users.find_one({'code': session['code']})
+        db.users.update_one({"_id": existing_user['_id']},
+                            {"$set": { "tasks": "NOT STARTED"}})
+        return '', 204
 
     return app

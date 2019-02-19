@@ -4,7 +4,7 @@ from collections import Counter
 from .gpx_comparison import *
 from .services import *
 from .celery import run_celery
-from .pickle import *
+from application.data_pickle import *
 
 DB_NAME = "c_strava"
 DB_HOST = "ds127094.mlab.com"
@@ -113,7 +113,7 @@ def parse_runs(code, limit, after=None):
                                      "strava_id": i[6], "firstcoord": freeze(i[5][0])})
 
                 user_runs.append({'id': itr, "times": [i[3]]})
-    db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze(user_runs)}})
+    db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze(user_runs), "tasks": "COMPLETE"}})
     if add_new_runs:
         db.runs.insert_many(add_new_runs)
     return 'complete'

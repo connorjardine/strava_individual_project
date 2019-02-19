@@ -1,11 +1,8 @@
-from bson import ObjectId
 from stravalib import Client
 from flask import request
 import gpxpy.geo
 import pymongo
 import hashlib
-import datetime
-import time
 import numpy
 from bson.objectid import ObjectId
 from numpy import *
@@ -15,9 +12,8 @@ import sys
 
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
 
-from .pickle import *
+from application.data_pickle import *
 
 DB_NAME = "c_strava"
 DB_HOST = "ds127094.mlab.com"
@@ -55,7 +51,7 @@ def return_valid_routes(current_loc, distance, spec_time, elevation, point_dista
     for i in run:
         if int(i['distance']) < int(distance) and convert_seconds(i['time'][0]) < int(spec_time) and \
                 int(i['elevation']) < int(elevation):
-            print((thaw(i['firstcoord'])).name, file=sys.stderr)
+            print(i, file=sys.stderr)
             if dist_between_start(current_loc, thaw(i['firstcoord']).name, int(point_distance)):
                 list_valid_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord']).name,
                                           i['distance'], i['elevation'], i['time'][0]])

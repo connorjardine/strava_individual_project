@@ -3,82 +3,15 @@
 {% block title %}Route View{% endblock %}
 
 {% block content %}
+<div class="container">
+    <p id=result></p>
+</div>
 <div class="container" id="map" style="height: 500px;"></div>
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
-    // The first parameter are the coordinates of the center of the map
-    // The second parameter is the zoom level
-
-    var routes = {{ routes|tojson }};
-    console.log(routes);
-
-    var map = L.map('map').setView([routes[0][2][0], routes[0][2][1]], 8);
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox.streets',
-        accessToken: 'pk.eyJ1IjoiY29ubm9yMjExMCIsImEiOiJjanJzN3l1czcwY2d1NDltaWlzbDBhdzY1In0.dog8eflpKvUl4vpVJ0oCjA'
-    }).addTo(map);
-
-    var x;
-    var activ;
-    var url;
-    var data;
-    var name;
-    for (x = 0; x < routes.length; x++) {
-        name = String(routes[x][0]);
-        activ = `https://www.strava.com/activities/${routes[x][1]}`;
-        url = `<a href= ${activ}>View Route</a>`;
-        console.log(url);
-        data = "time: " + String(routes[x][5]) + "<br> elevation: " + String(routes[x][4]) + "m<br> distance: " + String((routes[x][3] / 1000).toFixed(2)) + "km";
-        L.marker([routes[x][2][0], routes[x][2][1]]).addTo(map).bindPopup("<strong>" + name + "</strong><br>" + "<p>" + data + "</p><br>" + url);
-    }
-    // Now add the layer onto the map
-    map.addLayer(layer);
-
-    $(function () {
-        $("#slider-dist").slider({
-            range: true,
-            min: 0,
-            max: 100,
-            values: [1, 20],
-            slide: function (event, ui) {
-                $("#amount").val("$" + ui.values[0] + " - $" + ui.values[1]);
-            }
-        });
-        $("#amount").val($("#slider-dist").slider("values", 0) +
-            "km - " + $("#slider-dist").slider("values", 1) + "km");
-    });
-
-    $(function () {
-        $("#slider-elev").slider({
-            range: true,
-            min: 0,
-            max: 1500,
-            values: [0, 200],
-            slide: function (event, ui) {
-                $("#amount1").val("$" + ui.values[0] + " - $" + ui.values[1]);
-            }
-        });
-        $("#amount1").val($("#slider-elev").slider("values", 0) +
-            "m - " + $("#slider-elev").slider("values", 1) + "m");
-        console.log($("#slider-elev").slider("values", 0));
-    });
-
-    $(document).ready( function() {
-        $('#submit').click(function() {
-           var data = document.getElementById("amount").values;
-           $.post(
-              "/routes",
-              { data: data }
-           ).done(function (reply) {
-              $('#reply').empty().append(reply);
-           });
-        });
-  });
-</script>
+<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/map_scripts.js') }}" ></script>
 {% endblock %}
 
 
