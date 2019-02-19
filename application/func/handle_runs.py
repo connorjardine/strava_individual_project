@@ -4,7 +4,7 @@ from collections import Counter
 from .gpx_comparison import *
 from .services import *
 from .celery import run_celery
-from application.data_pickle import *
+from ..data_pickle import *
 
 DB_NAME = "c_strava"
 DB_HOST = "ds127094.mlab.com"
@@ -44,8 +44,7 @@ def parse_runs(code, limit, after=None):
     activities = get_activity(code, limit, after)
     new_runs = activities[0]
 
-
-    if current_user['pace']:
+    if current_user['pace'] is not "":
         current_pace = Counter((thaw(current_user['pace'])).name)
         new_pace = Counter(activities[1])
         db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(dict(current_pace + new_pace))}})

@@ -6,8 +6,9 @@ class Pickle(object):
         self.name = name
 
 
+
 def freeze(obj):
-    return jsonpickle.encode(Pickle(obj))
+    return jsonpickle.encode(obj)
 
 
 def thaw(obj):

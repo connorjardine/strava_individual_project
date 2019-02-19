@@ -1,19 +1,44 @@
 {% extends 'app-base.html' %}
 
-{% block title %}Leaderboard{% endblock %}
+{% block title %}Pace Prediction{% endblock %}
 
 {% block content %}
+
 <div class = "container">
-    <div class = "row">
-        {% for d in data %}
-            <div class = "col-md-4">
-                {{ d }}
-            </div>
-        {% endfor %}
-    </div>
+    <h1>Predict Pace</h1>
+    <form>
+        <div class="form-group">
+            <label for="distance">Distance</label>
+            <input type="text" class="form-control" id="distance" aria-describedby="distanceHelp"
+                   placeholder="Enter distance in metres">
+            <small id="distanceHelp" class="form-text text-muted">Leave blank for zero.</small>
+        </div>
+        <div class="form-group">
+            <label for="elevation">Elevation</label>
+            <input type="text" class="form-control" id="elevation" aria-describedby="distanceHelp" placeholder="Enter elevation in metres">
+            <small id="elevationHelp" class="form-text text-muted">Leave blank for zero.</small>
+        </div>
+        <button type="submit" class="btn btn-primary" id="calculate">Calculate Pace</button>
+    </form>
+
+
+    <div class="pace-result" id="pace"></div>
 </div>
+<script type=text/javascript>
+$(function() {
+    $('button#calculate').bind('click', function() {
+      $.getJSON($SCRIPT_ROOT + '/_get_pace_prediction', {
+        distance: $('input[name="distance"]').val(),
+        elevation: $('input[name="elevation"]').val()
+      }, function(data) {
+        $("#pace").text(data.pace);
+      });
+      return false;
+    });
+  });
+</script>
+{% block scripts %}
+    <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
+{% endblock %}
 {% endblock %}
 
-{% block scripts %}
-<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
-{% endblock %}

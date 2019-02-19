@@ -1,3 +1,4 @@
+from sklearn.metrics import mean_squared_error
 from stravalib import Client
 from flask import request
 import gpxpy.geo
@@ -13,7 +14,7 @@ import sys
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-from application.data_pickle import *
+from ..data_pickle import *
 
 DB_NAME = "c_strava"
 DB_HOST = "ds127094.mlab.com"
@@ -51,9 +52,8 @@ def return_valid_routes(current_loc, distance, spec_time, elevation, point_dista
     for i in run:
         if int(i['distance']) < int(distance) and convert_seconds(i['time'][0]) < int(spec_time) and \
                 int(i['elevation']) < int(elevation):
-            print(i, file=sys.stderr)
-            if dist_between_start(current_loc, thaw(i['firstcoord']).name, int(point_distance)):
-                list_valid_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord']).name,
+            if dist_between_start(current_loc, thaw(i['firstcoord'])['name'], int(point_distance)):
+                list_valid_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord'])['name'],
                                           i['distance'], i['elevation'], i['time'][0]])
 
     return list_valid_routes
@@ -126,17 +126,19 @@ def get_activity(token, limit, recent=None):
 
 def generate_data(code):
     current_user = db.users.find({'code': code})[0]
-    user_runs = thaw(current_user['runs']).name
+    user_runs = thaw(current_user['runs'])['name']
     h = sum(len(u['times']) for u in user_runs)
-    mx = numpy.zeros((h, 3))
+    mx = numpy.zeros((h, 5))
     it = 0
     runs = list(db.runs.find())
     for i in user_runs:
         for run in runs:
-            if run['_id'] == ObjectId(i['id']):
+            if run['id'] == i['id']:
                 for j in i['times']:
                     pace = (run['distance'] / 1000) / convert_hours(j)
-                    mx[it] = [run['distance'], run['elevation'], pace]
+                    dist = int(run['distance'])
+                    elev = int(run['elevation'])
+                    mx[it] = [dist, dist**2, elev, elev**2, pace]
                     it += 1
     return mx
 
@@ -145,14 +147,18 @@ def predict_pace(code, distance, elevation):
     data = generate_data(code)
 
     numpy.random.shuffle(data)
-    x = data[:, [0, 1]]
-    y = data[:, [2]]
+    x = data[:, [0, 1, 2, 3]]
+    y = data[:, [4]]
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=1)
 
     regression_model = LinearRegression()
     regression_model.fit(x_train, y_train)
-    return str("{0:.2f}".format(regression_model.predict([[distance, elevation]])[0][0])) + " km/h"
+    #print(regression_model.score(x_test, y_test))
+    y_predict = regression_model.predict(x_test)
+    #regression_model_mse = mean_squared_error(y_predict, y_test)
+    #print(math.sqrt(regression_model_mse))
+    return "Your predicted pace is: "+str("{0:.2f}".format(regression_model.predict([[distance, distance**2, elevation, elevation**2]])[0][0]))+" km/h"
 
 
 '''

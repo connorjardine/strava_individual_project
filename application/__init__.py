@@ -69,7 +69,7 @@ def create_app():
                 session['code'] = existing_user['code']
                 session['profile'] = get_profile_info(existing_user['code'])
 
-                if thaw(existing_user['after']).name:
+                if existing_user['after'] is not "":
                     parse_runs.delay(session['code'], 10, after=thaw(existing_user['after']).name)
                 else:
                     parse_runs.delay(session['code'], 10, after=freeze(datetime.now()))
@@ -146,7 +146,6 @@ def create_app():
                 avg_pace = thaw(i['pace'])['name']
                 print(avg_pace, file=sys.stderr)
                 data += [[i['username'], avg_pace]]
-        print(data, file=sys.stderr)
         return render_template('comparison.html', data=data)
 
     @app.route('/routes')
@@ -162,9 +161,14 @@ def create_app():
 
     @app.route('/prediction')
     def pace_prediction():
+        return render_template('predict_pace.html')
 
-        data = ["data"]
-        return render_template('predict_pace.html', data=data)
+    @app.route('/_get_pace_prediction')
+    def get_pace_prediction():
+        distance = request.args.get('distance', 1000, type=int)
+        elevation = request.args.get('elevation', 100, type=int)
+        pace = predict_pace(session['code'], distance, elevation)
+        return jsonify(pace=pace)
 
     @app.route('/_get_task_status')
     def get_task_status():
