@@ -11,50 +11,30 @@
 <div class="container">
     <div class="row">
         <div class="col-md-4">
-            <h1>{{username}}</h1>
-            <h2>{{profile[0]}}&nbsp;{{profile[1]}}</h2>
             <img src={{profile[2]}} alt="strava profile picture" class="img-thumbnail">
+            <h3>{{username}}</h3>
         </div>
-        <div class="col-md-4">
-            <h2>{{profile[3]}},&nbsp;{{profile[4]}}</h2>
-            <h2>Last active: {{profile[5]}}</h2>
-            <h2>Friends: {{profile[6]}}</h2>
+    </div>
+    <div class ="row" style="margin-top: 30px;">
+        <div class="col-md-6">
+            <label for="random_route">Random Route </label>
+            <div id="random_route" style="height: 400px; width: 500px; margin-bottom: 20px; margin-top: 20px;"></div>
         </div>
-        <div class="col-md-4">
-            <h3>Main activity: {{profile[7]}}</h3>
-            <h3>Unit Preference: {{profile[8]}}</h3>
+        <div class="col-md-6">
+            <label for="most_pop">Most Popular Route </label>
+            <div id="most_pop" style="height: 400px; width: 500px; margin-bottom: 20px; margin-top: 20px;"></div>
         </div>
     </div>
 </div>
-<div class="container">
-    <form method="POST" action="{{ url_for('profile') }}">
-        {{form.csrf_token}}
-        {{wtf.form_field(form.latitude)}}
-        {{wtf.form_field(form.longitude)}}
-        {{wtf.form_field(form.distance)}}
-        {{wtf.form_field(form.time)}}
-        {{wtf.form_field(form.elevation)}}
-        {{wtf.form_field(form.range)}}
-        <input class="btn btn-primary" type="submit" value="Submit Route Requests"/>
-    </form>
-</div>
 
 
-<div class="container" id="slider-dist" style="margin-top:20px; margin-bottom:20px;"></div>
-<div class="container">
-    <label for="amount">Distance Range: </label>
-    <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-</div>
-<div class="container" id="slider-elev" style="margin-top:20px; margin-bottom:20px;"></div>
-<div class="container">
-    <label for="amount1">Elevation Gain: </label>
-    <input type="text" id="amount1" readonly style="border:0; color:#f6931f; font-weight:bold;">
-</div>
 
-<div class="container" id="map" style="height: 500px; margin-bottom: 20px; margin-top: 20px;"></div>
 {% endblock %}
 
 {% block scripts %}
+<script>
+    var pop = {{ pop_run|tojson }};
+</script>
 <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/map_scripts.js') }}" ></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/profile_map_scripts.js') }}" ></script>
 {% endblock %}

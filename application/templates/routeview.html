@@ -6,25 +6,186 @@
 <div class="container">
     <p id=result></p>
 </div>
+
 <div class="container" id="map" style="height: 500px;"></div>
 
-<div class="container" id="slider-dist" style="margin-top:20px; margin-bottom:20px;"></div>
-<div class="container">
-    <label for="amount">Distance Range: </label>
-    <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-</div>
-<div class="container" id="slider-elev" style="margin-top:20px; margin-bottom:20px;"></div>
-<div class="container">
-    <label for="amount1">Elevation Gain: </label>
-    <input type="text" id="amount1" readonly style="border:0; color:#f6931f; font-weight:bold;">
+<div class = "container" style="margin-top: 30px;">
+    <div class="row">
+        <div class="col-md-4">
+            <div>
+                <label for="amount">Distance Range(km): </label>
+                <input type="text" id="amount" readonly>
+            </div>
+            <div id="slider-dist" style="margin-top:20px; margin-bottom:20px;"></div>
+            <div>
+                <label for="amount1">Elevation Gain(m): </label>
+                <input type="text" id="amount1" readonly>
+            </div>
+            <div id="slider-elev" style="margin-top:20px; margin-bottom:20px;"></div>
+        </div>
+        <div class="col-md-4">
+            <div>
+                <label for="amount">Location Range(km): </label>
+                <input type="text" id="amount2" readonly>
+            </div>
+            <div id="slider-rang" style="margin-top:20px; margin-bottom:20px;"></div>
+            <div>
+                <label for="amount1">Time Range(minutes): </label>
+                <input type="text" id="amount3" readonly>
+            </div>
+            <div id="slider-time" style="margin-top:20px; margin-bottom:20px;"></div>
+        </div>
+        <div class="col-md-4">
+            <div class ="form-group">
+                <label for="latitude">Latitude: </label>
+                <input type="text" class="form-control" id="latitude" readonly>
+            </div>
+            <div class = "form-group">
+                <label for="longitude">Longitude: </label>
+                <input type="text" class="form-control" id="longitude" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 text-center col-md-offset-4" style="margin-bottom: 30px">
+            <button type="submit" class="btn btn-primary" id="return-routes">Submit Route Requests</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 
 
 {% block scripts %}
-<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/map_scripts.js') }}" ></script>
+<script type="text/javascript">
+      $(function () {
+        $("#slider-dist").slider({
+            range: true,
+            min: 0,
+            max: 100,
+            step: 1,
+            values: [1, 20],
+            slide: function (event, ui) {
+                $("#amount").val(ui.values[0] + "km - " + ui.values[1]+ "km");
+            }
+        });
+        $("#amount").val($("#slider-dist").slider("values", 0) +
+            "km - " + $("#slider-dist").slider("values", 1) + "km");
+    });
+    $(function () {
+        $("#slider-elev").slider({
+            range: true,
+            min: 0,
+            max: 1500,
+            step: 10,
+            values: [0, 200],
+            slide: function (event, ui) {
+                $("#amount1").val(ui.values[0] + "m - " + ui.values[1]+ "m");
+            }
+        });
+        $("#amount1").val($("#slider-elev").slider("values", 0) +
+            "m - " + $("#slider-elev").slider("values", 1) + "m");
+    });
+    $( function() {
+    $(function () {
+        $("#slider-rang").slider({
+            range: true,
+            min: 0,
+            max: 100,
+            step: 1,
+            values: [1, 10],
+            slide: function (event, ui) {
+                $("#amount2").val(ui.values[0] + "km - " + ui.values[1]+ "km");
+            }
+        });
+        $("#amount2").val($("#slider-rang").slider("values", 0) +
+            "km - " + $("#slider-rang").slider("values", 1) + "km");
+    });
+  } );
+    $(function () {
+        $("#slider-time").slider({
+            range: true,
+            min: 0,
+            max: 300,
+            step: 5,
+            values: [0, 30],
+            slide: function (event, ui) {
+                $("#amount3").val(ui.values[0] + " minutes - " + ui.values[1]+ " minutes");
+            }
+        });
+        $("#amount3").val($("#slider-time").slider("values", 0) +
+            " minutes - " + $("#slider-time").slider("values", 1) + " minutes");
+    });
+
+    // The first parameter are the coordinates of the center of the map
+    // The second parameter is the zoom level
+    var routes = {{ routes|tojson }};
+    var map = L.map('map').setView([routes[0][2][0], routes[0][2][1]], 8);
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox.streets',
+        accessToken: 'pk.eyJ1IjoiY29ubm9yMjExMCIsImEiOiJjanJzN3l1czcwY2d1NDltaWlzbDBhdzY1In0.dog8eflpKvUl4vpVJ0oCjA'
+    }).addTo(map);
+
+    var theMarker = {};
+    var theCircle = {};
+    var lat = $("#latitude").val();
+    var lon = $("#longitude").val();
+
+    map.on('click', function (e) {
+        lat = e.latlng.lat;
+        lon = e.latlng.lng;
+        $("#latitude").val(lat);
+        $("#longitude").val(lon);
+
+        console.log("You clicked the map at LAT: " + lat + " and LONG: " + lon);
+        //Clear existing marker,
+
+        if (theMarker !== undefined) {
+            map.removeLayer(theMarker);
+            map.removeLayer(theCircle);
+        }
+        ;
+
+        //Add a marker to show where you clicked.
+        theMarker = L.marker([lat, lon]).addTo(map);
+        theCircle = L.circle([lat, lon], ($("#slider-rang").slider("values", 1)) * 1000).addTo(map);
+    });
+
+    var x;
+    var activ;
+    var url;
+    var data;
+    var name;
+    for (x = 0; x < routes.length; x++) {
+        name = String(routes[x][0]);
+        activ = `https://www.strava.com/activities/${routes[x][1]}`;
+        url = `<a href= ${activ}>View Route</a>`;
+        data = "time: " + String(routes[x][5]) + "<br> elevation: " + String(routes[x][4]) + "m<br> distance: " + String((routes[x][3] / 1000).toFixed(2)) + "km";
+        L.marker([routes[x][2][0], routes[x][2][1]]).addTo(map).bindPopup("<strong>" + name + "</strong><br>" + "<p>" + data + "</p><br>" + url);
+    }
+
+      $(function () {
+          $('button#return-routes').bind('click', function () {
+              var dist = [[$("#slider-dist").slider("values", 0), $("#slider-dist").slider("values", 1)]];
+              console.log($SCRIPT_ROOT);
+              $.getJSON($SCRIPT_ROOT + '/_get_routes', {
+                  distance_min: dist[0],
+                  distance_max: dist[1],
+                  elevation: [$("#slider-elev").slider("values", 0), $("#slider-elev").slider("values", 1)],
+                  range: [$("#slider-rang").slider("values", 0), $("#slider-rang").slider("values", 1)],
+                  time: [$("#slider-rang").slider("values", 0), $("#slider-rang").slider("values", 1)],
+                  loc: [lat,lon]
+
+              }, function (data) {
+                  $("#pace").text(data.pace);
+              });
+              return false;
+          });
+      });
+
+</script>
 {% endblock %}
 
 

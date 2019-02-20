@@ -29,7 +29,7 @@ def avg_time(time):
 
 
 @run_celery.task(name='hr.parse_runs')
-def parse_runs(code, limit, after=None):
+def parse_runs(code, limit):
     current_user = db.users.find({'code': code})[0]
 
     current_runs = list(db.runs.find())
@@ -41,20 +41,22 @@ def parse_runs(code, limit, after=None):
     add_new_runs = []
 
     # This takes 7.8 seconds
-    activities = get_activity(code, limit, after)
+    activities = get_activity(code, limit)
     new_runs = activities[0]
+    print(freeze(activities[1]))
 
     if current_user['pace'] is not "":
-        current_pace = Counter((thaw(current_user['pace'])).name)
-        new_pace = Counter(activities[1])
-        db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(dict(current_pace + new_pace))}})
+        print(thaw(current_user['pace']))
+        print(activities[1])
+        db.users.update_one({"_id": current_user['_id']},
+                            {"$set": {"pace": freeze(merge_dictionaries(thaw(current_user['pace']), activities[1]))}})
     else:
         db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(activities[1])}})
 
-    if current_user['runs'] is "":
+    if current_user['runs'] is "" or current_user['runs'] is []:
         user_runs = []
     else:
-        user_runs = thaw(current_user['runs']).name
+        user_runs = thaw(current_user['runs'])
 
     for i in new_runs:
         if not current_runs:
@@ -74,7 +76,7 @@ def parse_runs(code, limit, after=None):
                 curr_time = avg_time(k['time'])
                 new_time = convert_seconds(i[3])
                 if (curr_time - 1200) < new_time < (curr_time + 1200):
-                    k_trace = thaw(k['trace']).name
+                    k_trace = thaw(k['trace'])
                     if len(k_trace) > 50:
                         k_filter = num_filter(len(k_trace))
                     else:

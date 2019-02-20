@@ -50,14 +50,22 @@ def return_valid_routes(current_loc, distance, spec_time, elevation, point_dista
     list_valid_routes = []
     run = list(db.runs.find())
     for i in run:
-        if int(i['distance']) < int(distance) and convert_seconds(i['time'][0]) < int(spec_time) and \
-                int(i['elevation']) < int(elevation):
-            if dist_between_start(current_loc, thaw(i['firstcoord'])['name'], int(point_distance)):
-                list_valid_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord'])['name'],
+        if int(distance[0]) < int(i['distance']) < int(distance[1]) and \
+                int(spec_time[0]) < convert_seconds(i['time'][0]) < int(spec_time[1]) and \
+                int(elevation[0]) < int(i['elevation']) < int(elevation[1]):
+            if dist_between_start(current_loc, thaw(i['firstcoord']), int(point_distance)):
+                list_valid_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord']),
                                           i['distance'], i['elevation'], i['time'][0]])
-
     return list_valid_routes
 
+
+def return_all_routes():
+    list_routes = []
+    run = list(db.runs.find())
+    for i in run:
+        list_routes.append([i['name'], i['strava_id'], thaw(i['firstcoord']),
+                                          i['distance'], i['elevation'], i['time'][0]])
+    return list_routes
 
 def strava_auth():
     client = Client()
@@ -86,12 +94,12 @@ def get_profile_info(token):
     return ath
 
 
-def get_activity(token, limit, recent=None):
+def get_activity(token, limit):
     client = Client(token)
     output = []
-    pace = {"5k": 0, "5k_count": 0, "10k": 0, "10k_count": 0, "10kup": 0, "10kup_count": 0}
+    pace = {"total": 0, "total_count": 0, "5k": 0, "5k_count": 0, "10k": 0, "10k_count": 0, "10kup": 0, "10kup_count": 0}
     types = ['time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-    all_activities = client.get_activities(after="2016-11-16T00:00:00Z", limit=limit)
+    all_activities = client.get_activities(limit=limit)
     for i in all_activities:
         if i.id is not None:
             if i.type == 'Run':
@@ -101,6 +109,8 @@ def get_activity(token, limit, recent=None):
                         c_time = convert_hours(str(i.elapsed_time))
                         if c_time != 0 and int(i.distance) != 0:
                             dist = float(i.distance) / 1000
+                            pace['total'] += float("{0:.2f}".format(dist / c_time))
+                            pace['total_count'] += 1
                             if dist < 5:
                                 pace['5k'] += float("{0:.2f}".format(dist / c_time))
                                 pace['5k_count'] += 1
@@ -110,7 +120,6 @@ def get_activity(token, limit, recent=None):
                             else:
                                 pace['10kup'] += float("{0:.2f}".format(dist / c_time))
                                 pace['10kup_count'] += 1
-                        print(i.start_date, file=sys.stderr)
                         output.append([i.name, i.distance, i.type, str(i.elapsed_time),
                                        str(int(i.total_elevation_gain)), streams['latlng'].data, i.id, i.description])
                     else:
@@ -121,12 +130,13 @@ def get_activity(token, limit, recent=None):
                 print("incorrect activity")
         else:
             print("upload id is none")
+
     return [output, pace]
 
 
 def generate_data(code):
     current_user = db.users.find({'code': code})[0]
-    user_runs = thaw(current_user['runs'])['name']
+    user_runs = thaw(current_user['runs'])
     h = sum(len(u['times']) for u in user_runs)
     mx = numpy.zeros((h, 5))
     it = 0
@@ -161,11 +171,47 @@ def predict_pace(code, distance, elevation):
     return "Your predicted pace is: "+str("{0:.2f}".format(regression_model.predict([[distance, distance**2, elevation, elevation**2]])[0][0]))+" km/h"
 
 
-'''
-start_time = time.time()
-print(predict_pace("0a932112522523638c0e800f1aecda3c10515371", 100, 0))
-print("--- %s seconds ---" % (time.time() - start_time))
-'''
+def convert_pace_data(data):
+    if data['total_count'] is not 0:
+        totalk = "{0:.2f}".format(data['total'] / data['total_count']) + "km/h"
+    else:
+        totalk = "NA"
+    if data['5k_count'] is not 0:
+        fivek = "{0:.2f}".format(data['5k'] / data['5k_count']) + "km/h"
+    else:
+        fivek = "NA"
+    if data['10k_count'] is not 0:
+        tenk = "{0:.2f}".format(data['10k'] / data['10k_count']) + "km/h"
+    else:
+        tenk = "NA"
+    if data['10kup_count'] is not 0:
+        tenkup = "{0:.2f}".format(data['10kup'] / data['10kup_count']) + "km/h"
+    else:
+        tenkup = "NA"
+    return [totalk, fivek, tenk, tenkup]
 
 
+def merge_dictionaries(current, new):
+    return {"total": current['total']+new['total'], "total_count": current['total_count']+new['total_count'],
+            "5k": current['5k']+new['5k'], "5k_count": current['5k_count']+new['5k_count'],
+            "10k": current['10k']+new['10k'], "10k_count": current['10k_count']+new['10k_count'],
+            "10kup": current['10kup']+new['10kup'], "10kup_count": current['10kup_count']+new['10kup_count']}
 
+
+def get_pop_run(code):
+    current_user = db.users.find({'code': code})[0]
+    runs = list(thaw(current_user['runs']))
+    largest = 0
+    largest_time = {}
+    for i in runs:
+        if len(i['times']) > largest:
+            largest = len(i['times'])
+            largest_time = i
+    return largest_time
+
+
+def get_run_with_id(id):
+    runs = db.runs.find()
+    for i in runs:
+        if i['id'] == id:
+            return i

@@ -68,13 +68,8 @@ def create_app():
                 session['username'] = username
                 session['code'] = existing_user['code']
                 session['profile'] = get_profile_info(existing_user['code'])
-
-                if existing_user['after'] is not "":
-                    parse_runs.delay(session['code'], 10, after=thaw(existing_user['after']).name)
-                else:
-                    parse_runs.delay(session['code'], 10, after=freeze(datetime.now()))
-                db.users.update_one({"_id": existing_user['_id']},
-                                    {"$set": {"after": freeze(datetime.now()), "tasks": "RUNNING"}})
+                db.users.update_one({"_id": existing_user['_id']}, {"$set": {"tasks": "RUNNING"}})
+                parse_runs.delay(session['code'], 10)
                 return redirect(url_for('profile'))
 
         return render_template('login.html', form=form)
@@ -100,9 +95,8 @@ def create_app():
                 session['username'] = username
                 session.permanent = True
 
-                users.insert({'code': code, 'username': username, 'password': password,
-                              'after': datetime.now(), "tasks": "RUNNING"})
-                parse_runs.delay(code, 10, after=None)
+                users.insert({'code': code, 'username': username, 'password': password, "tasks": "RUNNING"})
+                parse_runs.delay(code, 10)
                 return redirect(url_for('profile'))
 
         return render_template('register.html', form=form, auth=strava_auth())
@@ -124,17 +118,11 @@ def create_app():
         username = session['username']
         code = session['code']
         profile = session['profile']
-        form = RouteForm()
-
-        if form.validate_on_submit():
-            session['location'] = [form.latitude.data, form.longitude.data]
-            session['time'] = form.time.data
-            session['distance'] = int(form.distance.data)
-            session['elevation'] = form.elevation.data
-            session['range'] = form.range.data
-            return redirect(url_for('routeview'))
-
-        return render_template('profile.html', username=username, form=form, profile=profile)
+        pop = get_run_with_id(get_pop_run(code)['id'])
+        pop_run = [[pop['name'], pop['strava_id'], thaw(pop['firstcoord']), pop['distance'],
+                   pop['elevation'], pop['time'][0]]]
+        print(pop_run, file=sys.stderr)
+        return render_template('profile.html', username=username,  profile=profile, pop_run=pop_run)
 
     @app.route('/comparison', methods=['GET', 'POST'])
     def comparison():
@@ -142,22 +130,17 @@ def create_app():
         data = []
         for i in users:
             if i['pace'] is not "":
-                print(i['pace'], file=sys.stderr)
-                avg_pace = thaw(i['pace'])['name']
-                print(avg_pace, file=sys.stderr)
+                avg_pace = convert_pace_data(thaw(i['pace']))
                 data += [[i['username'], avg_pace]]
         return render_template('comparison.html', data=data)
 
     @app.route('/routes')
     def routeview():
-        data = request.form.get('routes')
-        route_trace = []
-        if session['time'] and session['distance'] and session['location'] and session['elevation']:
-            route_trace = return_valid_routes(session['location'], session['distance'],
-                                              session['time'], session['elevation'], session['range'])
-        else:
-            return redirect(url_for('map'))
-        return render_template('routeview.html', routes=route_trace)
+        return render_template('routeview.html', routes=return_all_routes())
+
+    @app.route('/_get_routes')
+    def get_routes():
+        return "true"
 
     @app.route('/prediction')
     def pace_prediction():
