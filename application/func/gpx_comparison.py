@@ -75,12 +75,12 @@ def line_similarity(p1, p2, p3, p4):
         d = line_distance(p3, p4, p2)
         return - min(a, b, c, d)
 
-# print(line_similarity([55.832438, -4.541101], [55.832251, -4.540586], [55.832547, -4.541411], [55.832348, -4.540883]))
-
 
 def align_tracks(track1, track2, gap_penalty):
 
-    if line_similarity(track1[0], track1[1], track2[0], track2[1]) < gap_penalty*30:
+    # check first and last line segments are within a certain range before performing match
+    if line_similarity(track1[0], track1[1], track2[0], track2[1]) < gap_penalty*30 or \
+            line_similarity(track1[-2], track1[-1], track2[-2], track2[-1]) < gap_penalty*30:
         return 0
 
     # construct f-matrix

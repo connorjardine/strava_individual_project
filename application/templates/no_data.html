@@ -1,0 +1,32 @@
+{% extends 'app-base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container col-centered">
+    <div class="col-md-8 border task-status">
+        <div class="col-md-10 task-status-data" id=result></div>
+    </div>
+    <div class="col-md-4 loader" id="loader">Loading...</div>
+</div>
+
+<div class="container">
+    <div class="row profile-data" >
+        <div class="col-md-8 border col-centered">
+            <h3 class =>Error</h3>
+            <p>You have no runs parsed currently, please wait for the application to finish processing your Strava data. Alternatively,
+               please ensure that your Strava Account has valid activities logged.</p>
+            <p>A valid activity is in the form:</p>
+            <ul>
+                <li>Activity type is "Run".</li>
+                <li>The time taken is not zero.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
+{% endblock %}

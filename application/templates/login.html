@@ -13,7 +13,9 @@
             {{ wtf.form_field(form.password) }}
             <input class = "btn btn-primary" type="submit" value="Submit"/>
         </form>
-        <a href="{{ url_for('register') }}">Not Registered?</a>
+        <div class="container link-marg">
+            <a class="link-marg" href="{{ url_for('register') }}">Not Registered?</a>
+        </div>
     </div>
 
 {% endblock %}

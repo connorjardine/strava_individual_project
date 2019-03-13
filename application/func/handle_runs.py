@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from collections import Counter
 
 from .gpx_comparison import *
 from .services import *
@@ -40,18 +39,12 @@ def parse_runs(code, limit):
 
     add_new_runs = []
 
-    # This takes 7.8 seconds
-    activities = get_activity(code, limit)
-    new_runs = activities[0]
-    print(freeze(activities[1]))
-
-    if current_user['pace'] is not "":
-        print(thaw(current_user['pace']))
-        print(activities[1])
-        db.users.update_one({"_id": current_user['_id']},
-                            {"$set": {"pace": freeze(merge_dictionaries(thaw(current_user['pace']), activities[1]))}})
+    if current_user['after'] is "":
+        activities = get_activity(code, limit)
+        new_runs = activities[0]
     else:
-        db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(activities[1])}})
+        activities = get_activity(code, limit, after=current_user['after'])
+        new_runs = activities[0]
 
     if current_user['runs'] is "" or current_user['runs'] is []:
         user_runs = []
@@ -63,10 +56,10 @@ def parse_runs(code, limit):
             print("Empty run list")
             itr += 1
             current_runs.append({"id": itr, "name": i[0], "distance": int(i[1]), "type": i[2],
-                                      "time": [i[3]], "elevation": i[4], "trace": freeze(i[5]),
+                                      "time": [i[3]], "elevation": i[4], "count": 0, "trace": freeze(i[5]),
                                       "strava_id": i[6], "firstcoord": freeze(i[5][0])})
             add_new_runs.append({"id": itr, "name": i[0], "distance": int(i[1]), "type": i[2],
-                                      "time": [i[3]], "elevation": i[4], "trace": freeze(i[5]),
+                                      "time": [i[3]], "elevation": i[4], "count": 0, "trace": freeze(i[5]),
                                       "strava_id": i[6], "firstcoord": freeze(i[5][0])})
             user_runs.append({'id': itr, "times": [i[3]]})
         else:
@@ -91,6 +84,7 @@ def parse_runs(code, limit):
                 if match > 90:
                     print("there was a match")
                     new_times = k['time'] + [i[3]]
+                    k['count'] = k['count'] + 1
 
                     k['time'] = new_times
 
@@ -107,21 +101,30 @@ def parse_runs(code, limit):
                 print("No match with current runs")
                 itr += 1
                 current_runs.append({"id": itr, "name": i[0], "distance": int(i[1]), "type": i[2],
-                                     "time": [i[3]], "elevation": i[4], "trace": freeze(i[5]),
+                                     "time": [i[3]], "elevation": i[4], "count": 0, "trace": freeze(i[5]),
                                      "strava_id": i[6], "firstcoord": freeze(i[5][0])})
                 add_new_runs.append({"id": itr, "name": i[0], "distance": int(i[1]), "type": i[2],
-                                     "time": [i[3]], "elevation": i[4], "trace": freeze(i[5]),
+                                     "time": [i[3]], "elevation": i[4], "count": 0, "trace": freeze(i[5]),
                                      "strava_id": i[6], "firstcoord": freeze(i[5][0])})
 
                 user_runs.append({'id': itr, "times": [i[3]]})
-    db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze(user_runs), "tasks": "COMPLETE"}})
+
+    pace_data = generate_data(code)
     if add_new_runs:
         db.runs.insert_many(add_new_runs)
+    else:
+        db.users.update_one({"_id": current_user['_id']}, {"$set": {"tasks": "COMPLETE",
+                                                                    "pred_data": freeze(pace_data)}})
+        return 'complete'
+
+    if current_user['pace'] is not "":
+        db.users.update_one({"_id": current_user['_id']},
+                            {"$set": {"pace": freeze(merge_dictionaries(thaw(current_user['pace']), activities[1]))}})
+    else:
+        db.users.update_one({"_id": current_user['_id']}, {"$set": {"pace": freeze(activities[1])}})
+
+    db.users.update_one({"_id": current_user['_id']}, {"$set": {"runs": freeze(user_runs),
+                                                                "tasks": "COMPLETE", "after": activities[2],
+                                                                "pred_data": freeze(pace_data),
+                                                                "last_id": add_new_runs[-1]["id"]}})
     return 'complete'
-
-
-'''
-start_time = time.time()
-print(parse_runs("0a932112522523638c0e800f1aecda3c10515371", 10, "2016-11-16T00:00:00Z"))
-print("--- %s seconds ---" % (time.time() - start_time))
-'''

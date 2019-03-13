@@ -4,6 +4,13 @@
 
 {% block content %}
 
+<div class="container col-centered">
+    <div class="col-md-8 border task-status">
+        <div class="col-md-10 task-status-data" id=result></div>
+    </div>
+    <div class="col-md-4 loader" id="loader">Loading...</div>
+</div>
+
 <div class = "container">
     <h1>Predict Pace</h1>
     <form>
@@ -21,24 +28,43 @@
         <button type="submit" class="btn btn-primary" id="calculate">Calculate Pace</button>
     </form>
 
-
     <div class="pace-result" id="pace"></div>
+
+    <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            <th scope="col">Distance</th>
+            <th scope="col">Predicted Pace</th>
+            <th scope="col">Predicted Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for d in table_data %}
+            <tr>
+                <th scope="row">{{ d[0] }}</th>
+                <td>{{ d[1] }}</td>
+                <td>{{ d[2] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-<script type=text/javascript>
-$(function() {
-    $('button#calculate').bind('click', function() {
-      $.getJSON($SCRIPT_ROOT + '/_get_pace_prediction', {
-        distance: $('input[name="distance"]').val(),
-        elevation: $('input[name="elevation"]').val()
-      }, function(data) {
-        $("#pace").text(data.pace);
-      });
-      return false;
-    });
-  });
-</script>
-{% block scripts %}
-    <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
 {% endblock %}
+
+{% block scripts %}
+    <script type=text/javascript>
+    $(function() {
+        $('button#calculate').bind('click', function() {
+          $.getJSON($SCRIPT_ROOT + '/_get_pace_prediction', {
+            distance: $('input[id="distance"]').val(),
+            elevation: $('input[id="elevation"]').val()
+          }, function(data) {
+            $("#pace").text(data.pace);
+          });
+          return false;
+        });
+      });
+    </script>
+    <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
 {% endblock %}
 

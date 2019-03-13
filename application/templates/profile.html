@@ -4,24 +4,38 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div id=result></div>
+<div class="container col-centered">
+    <div class="col-md-8 border task-status">
+        <div class="col-md-10 task-status-data" id=result></div>
+    </div>
+    <div class="col-md-4 loader" id="loader">Loading...</div>
 </div>
 
+
+
 <div class="container">
-    <div class="row">
+    <div class="row profile-data">
         <div class="col-md-4">
-            <img src={{profile[2]}} alt="strava profile picture" class="img-thumbnail">
-            <h3>{{username}}</h3>
+            <div style="text-align: center">
+                <img src={{profile[2]}} alt="strava profile picture" class="img-thumbnail">
+            </div>
+            <h3 class ="username">{{username}}</h3>
+        </div>
+        <div class="col-md-4">
+            <h4>Number of Runs:</h4>
+            <h5> {{ user_data[1] }}</h5>
+            <br>
+            <h4>Date of Last Run:</h4>
+            <h5>{{ user_data[0] }}</h5>
         </div>
     </div>
-    <div class ="row" style="margin-top: 30px;">
+    <div class ="row profile-data" style="margin-top: 30px; padding-top: 20px;">
         <div class="col-md-6">
             <label for="random_route">Random Route </label>
             <div id="random_route" style="height: 400px; width: 500px; margin-bottom: 20px; margin-top: 20px;"></div>
         </div>
         <div class="col-md-6">
-            <label for="most_pop">Most Popular Route </label>
+            <label for="most_pop" style="padding-right: 180px">Most Popular Routes </label>
             <div id="most_pop" style="height: 400px; width: 500px; margin-bottom: 20px; margin-top: 20px;"></div>
         </div>
     </div>
@@ -34,7 +48,10 @@
 {% block scripts %}
 <script>
     var pop = {{ pop_run|tojson }};
+    var rand = {{ rand_run|tojson }};
 </script>
+
+
 <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
 <script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/profile_map_scripts.js') }}" ></script>
 {% endblock %}

@@ -19,19 +19,19 @@
 <script type=text/javascript>
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 </script>
-<link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
 
 {% endblock %}
 
 {% block navbar %}
-<nav class="navbar navbar-default navbar-light">
-    <div class="container-fluid">
+<nav class="navbar navbar-default navbar-light navbar-style">
+    <div class="container-fluid nav-style">
         <ul class="nav navbar-nav">
-            <li><a class="navbar-brand" href="{{ url_for('profile') }}">Profile</a></li>
-            <li><a class="navbar-brand" href="{{ url_for('routeview') }}">Routes</a></li>
-            <li><a class="navbar-brand" href="{{ url_for('comparison') }}">Leaderboard</a></li>
-            <li><a class="navbar-brand" href="{{ url_for('pace_prediction') }}">Predict Pace</a></li>
+            <li><a class="navbar-brand nav-text" href="{{ url_for('profile') }}">Profile</a></li>
+            <li><a class="navbar-brand nav-text" href="{{ url_for('routeview') }}">Routes</a></li>
+            <li><a class="navbar-brand nav-text" href="{{ url_for('comparison') }}">Leaderboard</a></li>
+            <li><a class="navbar-brand nav-text" href="{{ url_for('pace_prediction') }}">Predict Pace</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <li><a class="navbar-brand" href="{{ url_for('logout') }}">Logout</a>

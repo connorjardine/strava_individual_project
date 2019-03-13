@@ -2,6 +2,9 @@
 
 <title>{% block title %}{% endblock %}</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
 
 {% block content %}{% endblock %}

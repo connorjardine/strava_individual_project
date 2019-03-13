@@ -3,11 +3,18 @@
 {% block title %}Route View{% endblock %}
 
 {% block content %}
-<div class="container">
-    <p id=result></p>
+<div class="container col-centered">
+    <div class="col-md-8 border task-status">
+        <div class="col-md-10 task-status-data" id=result></div>
+    </div>
+    <div class="col-md-4 loader" id="loader">Loading...</div>
 </div>
 
 <div class="container" id="map" style="height: 500px;"></div>
+
+<div class="container alert alert-danger route-alert" role="alert" id="route-result">
+    <p style="text-align: center;">There were no runs which matched the criteria.</p>
+</div>
 
 <div class = "container" style="margin-top: 30px;">
     <div class="row">
@@ -58,6 +65,8 @@
 
 {% block scripts %}
 <script type="text/javascript">
+        $("#route-result").hide();
+
       $(function () {
         $("#slider-dist").slider({
             range: true,
@@ -120,6 +129,7 @@
     // The first parameter are the coordinates of the center of the map
     // The second parameter is the zoom level
     var routes = {{ routes|tojson }};
+
     var map = L.map('map').setView([routes[0][2][0], routes[0][2][1]], 8);
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -128,7 +138,6 @@
         accessToken: 'pk.eyJ1IjoiY29ubm9yMjExMCIsImEiOiJjanJzN3l1czcwY2d1NDltaWlzbDBhdzY1In0.dog8eflpKvUl4vpVJ0oCjA'
     }).addTo(map);
 
-    var theMarker = {};
     var theCircle = {};
     var lat = $("#latitude").val();
     var lon = $("#longitude").val();
@@ -142,14 +151,10 @@
         console.log("You clicked the map at LAT: " + lat + " and LONG: " + lon);
         //Clear existing marker,
 
-        if (theMarker !== undefined) {
-            map.removeLayer(theMarker);
+        if (theCircle !== undefined) {
             map.removeLayer(theCircle);
         }
-        ;
 
-        //Add a marker to show where you clicked.
-        theMarker = L.marker([lat, lon]).addTo(map);
         theCircle = L.circle([lat, lon], ($("#slider-rang").slider("values", 1)) * 1000).addTo(map);
     });
 
@@ -158,34 +163,66 @@
     var url;
     var data;
     var name;
+    var layerGroup = L.layerGroup().addTo(map);
     for (x = 0; x < routes.length; x++) {
         name = String(routes[x][0]);
         activ = `https://www.strava.com/activities/${routes[x][1]}`;
-        url = `<a href= ${activ}>View Route</a>`;
-        data = "time: " + String(routes[x][5]) + "<br> elevation: " + String(routes[x][4]) + "m<br> distance: " + String((routes[x][3] / 1000).toFixed(2)) + "km";
-        L.marker([routes[x][2][0], routes[x][2][1]]).addTo(map).bindPopup("<strong>" + name + "</strong><br>" + "<p>" + data + "</p><br>" + url);
+        url = `<a href= ${activ} target="_blank">View Route</a>`;
+        data = "Time: " + String(routes[x][5]) + "<br> Elevation Gain: " + String(routes[x][4]) + "m<br> Distance: " + String((routes[x][3] / 1000).toFixed(2)) + "km";
+        L.marker([routes[x][2][0], routes[x][2][1]]).addTo(layerGroup).bindPopup("<strong>" + name + "</strong><br>" + "<p class='popup'>" + data + "</p><br>" + url);
     }
 
       $(function () {
           $('button#return-routes').bind('click', function () {
-              var dist = [[$("#slider-dist").slider("values", 0), $("#slider-dist").slider("values", 1)]];
-              console.log($SCRIPT_ROOT);
+              var dist = [$("#slider-dist").slider("values", 0), $("#slider-dist").slider("values", 1)];
+              var elev = [$("#slider-elev").slider("values", 0), $("#slider-elev").slider("values", 1)];
+              var rang = $("#slider-rang").slider("values", 1);
+              var time = [$("#slider-time").slider("values", 0), $("#slider-time").slider("values", 1)];
+              lat = $("#latitude").val();
+              lon = $("#longitude").val();
               $.getJSON($SCRIPT_ROOT + '/_get_routes', {
                   distance_min: dist[0],
                   distance_max: dist[1],
-                  elevation: [$("#slider-elev").slider("values", 0), $("#slider-elev").slider("values", 1)],
-                  range: [$("#slider-rang").slider("values", 0), $("#slider-rang").slider("values", 1)],
-                  time: [$("#slider-rang").slider("values", 0), $("#slider-rang").slider("values", 1)],
-                  loc: [lat,lon]
+                  elevation_min: elev[0],
+                  elevation_max: elev[1],
+                  rang_max: rang,
+                  time_min: time[0],
+                  time_max: time[1],
+                  lat: lat,
+                  lon: lon
 
               }, function (data) {
-                  $("#pace").text(data.pace);
+                  layerGroup.clearLayers();
+                  map.removeLayer(theCircle);
+                  if (newLayerGroup !== undefined) {
+                    newLayerGroup.clearLayers();
+                  }
+                  var new_routes = data.new_routes;
+
+                  if (Array.isArray(new_routes)) {
+                     var newLayerGroup = L.layerGroup().addTo(map);
+                  for (x = 0; x < new_routes.length; x++) {
+                      name = String(new_routes[x][0]);
+                      activ = `https://www.strava.com/activities/${new_routes[x][1]}`;
+                      url = `<a href= ${activ} target="_blank">View Route</a>`;
+                      data = "Time: " + String(new_routes[x][5]) + "<br> Elevation Gain: " + String(new_routes[x][4]) + "m<br> Distance: " + String((new_routes[x][3] / 1000).toFixed(2)) + "km";
+                      lat = new_routes[x][2][0];
+                      lon = new_routes[x][2][1];
+                      var markerPos = [lat, lon];
+                      L.marker(markerPos).addTo(newLayerGroup).bindPopup("<strong>" + name + "</strong><br>" + "<p class='popup'>" + data + "</p><br>" + url);
+                  }
+                  }
+                  else {
+                      $("#route-result").show();
+                  }
+
               });
               return false;
           });
       });
 
 </script>
+<script type = "text/javascript" src = "{{ url_for('static', filename = 'scripts/scripts.js') }}" ></script>
 {% endblock %}
 
 
