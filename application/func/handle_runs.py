@@ -16,10 +16,12 @@ db = connection[DB_NAME]
 db.authenticate(DB_USER, DB_PASS)
 
 
+# Filters the number of points in the list to approximately 50 points
 def num_filter(x_num):
     return round(x_num/50)
 
 
+# Calculates the average time of a list of times
 def avg_time(time):
     total = 0
     for i in time:
@@ -27,6 +29,9 @@ def avg_time(time):
     return total / len(time)
 
 
+# Function to parse runs, compares each run with existing runs, inserts new run if unique, appends time to existing run
+# If it is not. Updates a user's pace as well as relearns the linear regression model of pace
+# Then updates the database
 @run_celery.task(name='hr.parse_runs')
 def parse_runs(code, limit):
     current_user = db.users.find({'code': code})[0]

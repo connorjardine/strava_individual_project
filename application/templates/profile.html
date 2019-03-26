@@ -5,10 +5,12 @@
 
 {% block content %}
 <div class="container col-centered">
-    <div class="col-md-8 border task-status">
-        <div class="col-md-10 task-status-data" id=result></div>
+    <div class="col-md-8 border col-centered task-status" id=result-container>
+        <div class="col-md-8 task-status-data" id=result></div>
+        <div class="col-md-2 loader-spin">
+            <img src ="static/load1.gif" height="30" width="30">
+        </div>
     </div>
-    <div class="col-md-4 loader" id="loader">Loading...</div>
 </div>
 
 

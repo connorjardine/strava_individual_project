@@ -5,19 +5,20 @@
               setTimeout(
                 function()
                 {
-                    $("#result").text("Run parsing is complete.").css("background-color", "white");
+                    $("#result").text("Run parsing is complete.").css({"background-color":"#2a333c", "display": "block"});
+                    $("#result-container").css({"display": "none"});
                     $.getJSON($SCRIPT_ROOT + '/_update_task_status');
                 }, 5000);
-                $("#result").hide();
-                $("#loader").hide()
+                $("#result").css({"display": "none"});
+                $("#result-container").css({"display": "none"})
           }
           else if (data.result === "RUNNING") {
-              $("#result").text("Parsing runs.").css("background-color", "#cce5ff").show();
-              $("#loader").show()
+              $("#result").text("Parsing runs.").css({"background-color":"#2a333c", "display": "block"});
+              $("#result-container").css({"display": "block"})
           }
           else {
-              $("#result").hide();
-              $("#loader").hide()
+              $("#result").css({"display": "none"});
+              $("#result-container").css({"display": "none"})
           }
       });
     setInterval( function() {
@@ -27,19 +28,20 @@
             setTimeout(
                 function()
                 {
-                    $("#result").text("Run parsing is complete.").css("background-color", "white");
+                    $("#result").text("Run parsing is complete.").css({"background-color":"#2a333c", "display": "block"});
+                    $("#result-container").css({"display": "block"});
                     $.getJSON($SCRIPT_ROOT + '/_update_task_status');
                 }, 5000);
-                $("#result").hide();
-                $("#loader").hide()
+                $("#result").css({"display": "none"});
+                $("#result-container").css({"display": "none"})
           }
           else if (data.result === "RUNNING") {
-              $("#result").text("Parsing runs.").css("background-color", "#cce5ff").show();
-              $("#loader").show()
+              $("#result").text("Parsing runs.").css({"background-color":"#2a333c", "display": "block"});
+              $("#result-container").css({"display": "block"})
           }
           else {
-             $("#result").hide();
-              $("#loader").hide()
+             $("#result").css({"display": "none"});
+             $("#result-container").css({"display": "none"})
           }
       });
       return false;

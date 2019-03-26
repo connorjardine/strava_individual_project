@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from flask import Flask, render_template, session, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, IntegerField, FloatField
+from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Length
 from flask_pymongo import PyMongo
 from flask_bootstrap import Bootstrap
@@ -10,6 +10,7 @@ from .func.gpx_comparison import *
 from .data_pickle import *
 from .func.services import *
 from .func.handle_runs import *
+from .app_secrets import *
 
 import sys
 
@@ -18,13 +19,13 @@ def create_app():
     # create and configure the app
     app = Flask(__name__)
 
-    app.config['SECRET_KEY'] = "Connor"
+    app.config['SECRET_KEY'] = app_secrets.key
 
-    app.config['MONGO_DBNAME'] = 'connor'
+    app.config['MONGO_DBNAME'] = app_secrets.name
     app.config['MONGO_CONNECT'] = False
-    app.config["MONGO_URI"] = 'mongodb://connor:Password1@ds127094.mlab.com:27094/c_strava'
-    app.config['CELERY_BROKER_URL'] = 'pyamqp://guest@localhost//'
-    app.config['CELERY_RESULT_BACKEND'] = 'pyamqp://guest@localhost//'
+    app.config["MONGO_URI"] = app_secrets.uri
+    app.config['CELERY_BROKER_URL'] = app_secrets.url
+    app.config['CELERY_RESULT_BACKEND'] = app_secrets.back
     mongo = PyMongo(app)
     Bootstrap(app)
 
@@ -49,7 +50,6 @@ def create_app():
     def login():
         form = LoginForm()
         code = request.args.get('code')
-        print(code, file=sys.stderr)
 
         if form.validate_on_submit():
             username = form.username.data
@@ -57,15 +57,17 @@ def create_app():
             users = mongo.db.users
             existing_user = users.find_one({'username': username, 'password': password})
             if existing_user is not None:
-                if code is not None:
+                if code:
                     session['code'] = get_headers(code)
                     db.users.update_one({"_id": existing_user['_id']}, {"$set": {"code": "session['code"}})
-                session['username'] = username
-                session['code'] = existing_user['code']
-                session['profile'] = get_profile_info(existing_user['code'])
-                db.users.update_one({"_id": existing_user['_id']}, {"$set": {"tasks": "RUNNING"}})
-                parse_runs.delay(session['code'], 450)
-                return redirect(url_for('profile'))
+                exist_code = existing_user['code']
+                if exist_code is not "":
+                    session['username'] = username
+                    session['code'] = existing_user['code']
+                    session['profile'] = get_profile_info(existing_user['code'])
+                    db.users.update_one({"_id": existing_user['_id']}, {"$set": {"tasks": "RUNNING"}})
+                    parse_runs.delay(session['code'], 80)
+                    return redirect(url_for('profile'))
 
         return render_template('login.html', form=form)
 
@@ -81,21 +83,21 @@ def create_app():
             users = mongo.db.users
             existing_user = users.find_one({'username': username, 'password': password})
             if existing_user is None:
-                users.insert({'code': "", 'username': username, 'password': password, "tasks": "NOT STARTED", "pace": "",
-                              "after": ""})
+                users.insert({'code': "", 'username': username, 'password': password, "last_id": 0, "tasks": "NOT STARTED", "runs": "", "pace": "",
+                              "after": "", "pred_data": ""})
                 return redirect(strava_auth())
 
         return render_template('register.html', form=form, auth=strava_auth())
 
     @app.route('/logout')
     def logout():
-        if 'username' not in session:
+        if 'username' in session:
             session.pop('username')
-        if 'code' not in session:
+        if 'code' in session:
             session.pop('code')
-        if 'location' not in session:
+        if 'location' in session:
             session.pop('location')
-        if 'elevation' not in session:
+        if 'elevation' in session:
             session.pop('elevation')
         return redirect(url_for('login'))
 
@@ -147,9 +149,8 @@ def create_app():
         elevation = [request.args.get('elevation_min', 100, type=int), request.args.get('elevation_max', 100, type=int)]
         range = request.args.get('rang_max', 100, type=int)
         time = [request.args.get('time_min', 100, type=int), request.args.get('time_max', 100, type=int)]
-        latlng = [float(request.args.get('lat')), float(request.args.get('lon'))]
+        latlng = [request.args.get('lat'), request.args.get('lon')]
         routes = return_valid_routes(latlng, distance, time, elevation, range, session['code'])
-        print("here", file=sys.stderr)
         if routes:
             return jsonify(new_routes=routes)
         return jsonify(new_routes="No valid runs.")
@@ -163,7 +164,6 @@ def create_app():
                                 ["1/2 Marathon", 21100], ["Marathon", 42200]]
                 for k in distances_km:
                     pace = predict_pace(k[1], 0, session['code'])
-                    print(pace, file=sys.stderr)
                     m, s = divmod(int(pace), 60)
                     if m < 0:
                         output_pace = "NA"
@@ -171,7 +171,6 @@ def create_app():
                     else:
                         output_pace = '{:02d}:{:02d}'.format(int(m), int(s)) + " /km"
                         time = int((k[1] / 1000) * pace)
-                        print(time, file=sys.stderr)
                         m, s = divmod(time, 60)
                         h, m = divmod(m, 60)
                         output_time = '{:02d}:{:02d}:{:02d}'.format(h, m, s)

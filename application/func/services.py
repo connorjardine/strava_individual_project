@@ -27,30 +27,36 @@ db = connection[DB_NAME]
 db.authenticate(DB_USER, DB_PASS)
 
 
+# Returns a hash of a given string, used for passwords
 def hash_md5(unhashed_password):
     hash_object = hashlib.md5(unhashed_password.encode())
     return hash_object.hexdigest()
 
 
+# Converts a string time to seconds
 def convert_seconds(i):
     seconds = 0
     seconds += int(i[0]) * 3600 + int(i[2] + i[3]) * 60 + int(i[5] + i[6])
     return seconds
 
 
+# Converts a string time to hours
 def convert_hours(i):
     return convert_seconds(i) / 3600
 
 
+# Returns whether a point is within a specified distance range of another
 def dist_between_start(current_loc, first_coord, distance):
     return int(gpxpy.geo.distance(current_loc[0], current_loc[1], 0, first_coord[0], first_coord[1], 0)) < distance*1000
 
 
+# Returns a list of routes which meets the specified parameter criteria
 def return_valid_routes(current_loc, distance, spec_time, elevation, point_distance, code):
     list_valid_routes = []
     run = list(db.runs.find())
-    if current_loc is []:
+    if current_loc[0] is not '' and current_loc[1] is not '':
         for i in run:
+            current_loc = [float(current_loc[0]), float(current_loc[1])]
             time = int(((i['distance'] / 1000) / predict_pace(int(i['distance']), int(i['elevation']), code)) * 3600)
             if int(distance[0] * 1000) < int(i['distance']) < int(distance[1] * 1000) and \
                     int(spec_time[0] * 60) < time < int(spec_time[1] * 60) and \
@@ -80,6 +86,7 @@ def return_valid_routes(current_loc, distance, spec_time, elevation, point_dista
         return list_valid_routes
 
 
+# Returns a list of all of the routes
 def return_all_routes():
     list_routes = []
     run = list(db.runs.find())
@@ -89,13 +96,14 @@ def return_all_routes():
     return list_routes
 
 
+# Generates the authentication URL for app registration
 def strava_auth():
     client = Client()
     url = client.authorization_url(client_id=29157, redirect_uri='http://127.0.0.1:5000/login')
-    print(url, file=sys.stderr)
     return url
 
 
+# Swaps a new user's temporary token for a permanent access token
 def get_headers(code):
     if code is not None:
         client = Client()
@@ -107,6 +115,7 @@ def get_headers(code):
     return None
 
 
+# Given a token, returns the user's profile info
 def get_profile_info(token):
     client = (Client(token)).get_athlete()
     ath = [client.firstname, client.lastname, client.profile, client.city, client.state, str(client.updated_at),
@@ -114,6 +123,7 @@ def get_profile_info(token):
     return ath
 
 
+# Returns a user's activities after a certain data
 def get_activity(token, limit, after="2000-06-06 14:47:03+00:00"):
     client = Client(token)
     output = []
@@ -159,6 +169,7 @@ def get_activity(token, limit, after="2000-06-06 14:47:03+00:00"):
     return [output, pace, after]
 
 
+# Generates data to be used by the linear regression model
 def generate_data(code):
     current_user = db.users.find({'code': code})[0]
     user_runs = thaw(current_user['runs'])
@@ -191,14 +202,15 @@ def generate_data(code):
     return regression_model.fit(x_train, y_train)
 
 
+# Pace prediction for linear regression model
 def predict_pace(distance, elevation, code):
     current_user = db.users.find({'code': code})[0]
     model = thaw(current_user['pred_data'])
     return model.predict([[distance, distance**2, elevation, elevation**2]])[0][0]
 
 
+# Converts the pace data to a km/h
 def convert_pace_data(data):
-    print(data, file=sys.stderr)
     if data['total_count'] is not 0:
         totalk = "{0:.2f}".format(data['total'] / data['total_count']) + "km/h"
     else:
@@ -222,6 +234,7 @@ def convert_pace_data(data):
     return [totalk, fivek, tenk, tenkup, thirk]
 
 
+# Merges two dictionaries, did not know about more efficient solution untill after this was implemented.
 def merge_dictionaries(current, new):
     return {"total": current['total']+new['total'], "total_count": current['total_count']+new['total_count'],
             "4k": current['4k']+new['4k'], "4k_count": current['4k_count']+new['4k_count'],
@@ -230,6 +243,7 @@ def merge_dictionaries(current, new):
             "13k": current['13k'] + new['13k'], "13k_count": current['13k_count'] + new['13k_count']}
 
 
+# Returns 3 of the most popular runs
 def get_pop_run(code):
     current_user = db.users.find({'code': code})[0]
     runs = list(thaw(current_user['runs']))
@@ -248,10 +262,10 @@ def get_pop_run(code):
     return largest_time
 
 
+# Returns a run when specified a list of runs
 def get_run_with_id(user_runs):
     runs = db.runs.find()
     req_runs = []
-    print(user_runs, file=sys.stderr)
     for k in user_runs:
         for i in runs:
             if int(i['id']) == int(k['id']):
@@ -260,10 +274,12 @@ def get_run_with_id(user_runs):
     return req_runs
 
 
+# Returns all the runs for a given user
 def get_run(id):
     return db.runs.find({"id": id})[0]
 
 
+# Returns a random run
 def get_random_run(code):
     current_user = db.users.find({'code': code})[0]
     runs = list(thaw(current_user['runs']))
@@ -271,10 +287,13 @@ def get_random_run(code):
     return runs[index]
 
 
+# Checks that a user has runs which are parsed
 def user_data_check(code):
     current_user = db.users.find({'code': code})[0]
     return current_user['runs'] is not ""
 
 
+# Checks that the application has runs which have been parsed
 def run_data_check():
     return (db.runs.find()).count() != 0
+

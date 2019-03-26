@@ -4,10 +4,12 @@
 
 {% block content %}
 <div class="container col-centered">
-    <div class="col-md-8 border task-status">
-        <div class="col-md-10 task-status-data" id=result></div>
+    <div class="col-md-8 border col-centered task-status" id=result-container>
+        <div class="col-md-8 task-status-data" id=result></div>
+        <div class="col-md-2 loader-spin">
+            <img src ="static/load1.gif" height="30" width="30">
+        </div>
     </div>
-    <div class="col-md-4 loader" id="loader">Loading...</div>
 </div>
 
 <div class="container" id="map" style="height: 500px;"></div>
@@ -57,6 +59,9 @@
         <div class="col-md-4 text-center col-md-offset-4" style="margin-bottom: 30px">
             <button type="submit" class="btn btn-primary" id="return-routes">Submit Route Requests</button>
         </div>
+        <div class="col-md-2 loader-spin-rr" id=route-req>
+            <img src ="static/load1.gif" height="30" width="30">
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -65,7 +70,6 @@
 
 {% block scripts %}
 <script type="text/javascript">
-        $("#route-result").hide();
 
       $(function () {
         $("#slider-dist").slider({
@@ -102,7 +106,7 @@
             min: 0,
             max: 100,
             step: 1,
-            values: [1, 10],
+            values: [0, 10],
             slide: function (event, ui) {
                 $("#amount2").val(ui.values[0] + "km - " + ui.values[1]+ "km");
             }
@@ -174,6 +178,8 @@
 
       $(function () {
           $('button#return-routes').bind('click', function () {
+              $("#route-req").css({"display": "block"});
+              $("#route-result").css({"display": "none"});
               var dist = [$("#slider-dist").slider("values", 0), $("#slider-dist").slider("values", 1)];
               var elev = [$("#slider-elev").slider("values", 0), $("#slider-elev").slider("values", 1)];
               var rang = $("#slider-rang").slider("values", 1);
@@ -201,19 +207,22 @@
 
                   if (Array.isArray(new_routes)) {
                      var newLayerGroup = L.layerGroup().addTo(map);
-                  for (x = 0; x < new_routes.length; x++) {
-                      name = String(new_routes[x][0]);
-                      activ = `https://www.strava.com/activities/${new_routes[x][1]}`;
-                      url = `<a href= ${activ} target="_blank">View Route</a>`;
-                      data = "Time: " + String(new_routes[x][5]) + "<br> Elevation Gain: " + String(new_routes[x][4]) + "m<br> Distance: " + String((new_routes[x][3] / 1000).toFixed(2)) + "km";
-                      lat = new_routes[x][2][0];
-                      lon = new_routes[x][2][1];
-                      var markerPos = [lat, lon];
-                      L.marker(markerPos).addTo(newLayerGroup).bindPopup("<strong>" + name + "</strong><br>" + "<p class='popup'>" + data + "</p><br>" + url);
-                  }
+
+                      for (x = 0; x < new_routes.length; x++) {
+                          name = String(new_routes[x][0]);
+                          activ = `https://www.strava.com/activities/${new_routes[x][1]}`;
+                          url = `<a href= ${activ} target="_blank">View Route</a>`;
+                          data = "Time: " + String(new_routes[x][5]) + "<br> Elevation Gain: " + String(new_routes[x][4]) + "m<br> Distance: " + String((new_routes[x][3] / 1000).toFixed(2)) + "km";
+                          lat = new_routes[x][2][0];
+                          lon = new_routes[x][2][1];
+                          var markerPos = [lat, lon];
+                          L.marker(markerPos).addTo(newLayerGroup).bindPopup("<strong>" + name + "</strong><br>" + "<p class='popup'>" + data + "</p><br>" + url);
+                      }
+                      $("#route-req").css({"display": "none"});
                   }
                   else {
-                      $("#route-result").show();
+                    $("#route-req").css({"display": "none"});
+                    $("#route-result").css({"display": "block"});
                   }
 
               });

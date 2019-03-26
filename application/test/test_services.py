@@ -20,6 +20,18 @@ class TestServices(unittest.TestCase):
         self.assertTrue(result, True)
         self.assertTrue(result1, False)
 
+    def test_convert_hours(self):
+        result = convert_hours('1:20:00')
+        self.assertEqual(result, 1.3333333333333333)
+
+    def test_return_all_routes(self):
+        result = return_all_routes()
+        self.assertTrue(type(result) == list)
+
+    def test_strava_auth(self):
+        result = strava_auth()
+        self.assertEqual(result, "https://www.strava.com/oauth/authorize?client_id=29157&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Flogin&approval_prompt=auto&response_type=code")
+
 
 if __name__ == '__main__':
     unittest.main()
