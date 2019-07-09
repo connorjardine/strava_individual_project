@@ -35,14 +35,3 @@ and login with
 
 username: srogers	  or	username: skendrick
 password: hello1234			password: hello1234
-
-
-Expected Issues:
-
-The main issue that I would expect would be with celery, if it does not work, you can change the lines in innit.py which use .delay from:
-
-parse_runs.delay(session['code'], 80)
-
-to parse_runs(session['code'], 80)
-
-Other issues may relate to different versions of installed modules. The video from my presentation is https://www.youtube.com/watch?v=RE62BxmagOQ as a backup.
