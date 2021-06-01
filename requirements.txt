@@ -64,7 +64,7 @@ sklearn==0.0
 stravalib==0.9.4
 tornado==5.1.1
 units==0.7
-urllib3==1.23
+urllib3==1.26.5
 vectormath==0.2.1
 vine==1.2.0
 visitor==0.1.3
